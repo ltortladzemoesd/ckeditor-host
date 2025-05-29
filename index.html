@@ -2,21 +2,21 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <script src="https://cdn.ckeditor.com/4.25.1-lts/full-all/ckeditor.js"></script>
+    <script src="https://cdn.ckeditor.com/4.25.1-lts/full/ckeditor.js"></script>
     <style>
       html, body {
         margin: 0;
         padding: 10px;
-        background: #f2f2f2;
         font-family: Arial, sans-serif;
+        background: #f9f9f9;
       }
-      #editor1 {
+      textarea {
         width: 100%;
-        height: 400px;
+        height: 300px;
       }
       button {
-        margin-top: 16px;
-        padding: 10px 20px;
+        margin-top: 10px;
+        padding: 10px 16px;
         font-size: 16px;
       }
     </style>
@@ -27,22 +27,12 @@
 
     <script>
       CKEDITOR.replace('editor1', {
-        height: 400,
-        extraPlugins: 'colorbutton,colordialog',
-        removePlugins: 'easyimage,cloudservices',
-        allowedContent: true,
+        height: 300,
         toolbar: [
-          { name: 'document', items: ['Source', 'Preview'] },
-          { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'PasteFromWord', '-', 'Undo', 'Redo'] },
-          { name: 'editing', items: ['Find', 'Replace', '-', 'SelectAll'] },
-          '/',
-          { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
-          { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote'] },
-          { name: 'insert', items: ['Image', 'Table', 'HorizontalRule', 'SpecialChar'] },
-          '/',
-          { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
-          { name: 'colors', items: ['TextColor', 'BGColor'] },
-          { name: 'tools', items: ['Maximize', 'ShowBlocks'] }
+          { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+          { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
+          { name: 'insert', items: ['Table', 'Image', 'Link'] },
+          { name: 'tools', items: ['Maximize'] }
         ]
       });
 
