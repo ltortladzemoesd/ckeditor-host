@@ -25,18 +25,32 @@
     <button onclick="sendContent()">Submit</button>
 
     <script>
-      // Register custom Cell Background button BEFORE the editor is created
+      // Register custom Cell Background plugin
       CKEDITOR.plugins.add('cellbgcolor', {
         init: function(editor) {
           editor.addCommand('setCellBgColor', {
             exec: function(editor) {
               const selection = editor.getSelection();
-              const selectedElement = selection.getStartElement();
-              if (!selectedElement) return;
+              const ranges = selection.getRanges();
 
-              const cell = selectedElement.getAscendant(['td', 'th'], true);
-              if (!cell) {
-                alert('Please place your cursor inside a table cell.');
+              // Track all unique <td>/<th> elements touched by the selection
+              const selectedCells = new Set();
+
+              for (let range of ranges) {
+                const walker = new CKEDITOR.dom.walker(range);
+                let node;
+                while ((node = walker.next())) {
+                  const cell = node.getAscendant(['td', 'th'], true);
+                  if (cell) selectedCells.add(cell);
+                }
+
+                // Also add the starting cell
+                const startCell = range.startContainer.getAscendant(['td', 'th'], true);
+                if (startCell) selectedCells.add(startCell);
+              }
+
+              if (selectedCells.size === 0) {
+                alert('Please place your cursor inside a table cell or select table cells.');
                 return;
               }
 
@@ -49,7 +63,7 @@
 
               input.addEventListener('input', () => {
                 const color = input.value;
-                cell.setStyle('background-color', color);
+                selectedCells.forEach(cell => cell.setStyle('background-color', color));
                 document.body.removeChild(input);
               });
             }
@@ -64,7 +78,7 @@
         }
       });
 
-      // Create the editor with custom plugin
+      // Initialize the editor
       CKEDITOR.replace('editor1', {
         height: 300,
         extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu,cellbgcolor',
@@ -80,7 +94,6 @@
         ]
       });
 
-      // Send HTML back to parent container
       function sendContent() {
         const html = CKEDITOR.instances.editor1.getData();
         parent.postMessage(html, "*");
