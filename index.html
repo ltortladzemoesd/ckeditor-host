@@ -2,21 +2,13 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <script src="https://cdn.ckeditor.com/4.25.1-lts/full/ckeditor.js"></script>
+    <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
     <style>
-      html, body {
-        margin: 0;
-        padding: 10px;
-        font-family: Arial, sans-serif;
-        background: #f9f9f9;
-      }
-      textarea {
-        width: 100%;
-        height: 300px;
-      }
+      body { margin: 0; padding: 10px; font-family: Arial; }
+      textarea { width: 100%; height: 300px; }
       button {
         margin-top: 10px;
-        padding: 10px 16px;
+        padding: 8px 16px;
         font-size: 16px;
       }
     </style>
@@ -27,8 +19,11 @@
 
     <script>
       CKEDITOR.replace('editor1', {
-        height: 300,
+        extraPlugins: 'colorbutton,colordialog',
+        removeButtons: '',
         toolbar: [
+          { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+          { name: 'colors', items: ['TextColor', 'BGColor'] },
           { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
           { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
           { name: 'insert', items: ['Table', 'Image', 'Link'] },
