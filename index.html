@@ -25,10 +25,25 @@
           toolbar: {
             items: [
               'heading', '|',
+              'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', 'highlight', '|',
               'bold', 'italic', 'underline', 'link', '|',
+              'alignment', '|',
               'bulletedList', 'numberedList', '|',
-              'insertTable', 'undo', 'redo'
+              'insertTable', '|',
+              'undo', 'redo'
             ]
+          },
+          fontFamily: {
+            options: [
+              'default',
+              'Arial, sans-serif',
+              'Georgia, serif',
+              'Courier New, Courier, monospace',
+              'Lucida Console, Monaco, monospace'
+            ]
+          },
+          fontSize: {
+            options: [10, 12, 14, 'default', 18, 24, 36]
           },
           table: {
             contentToolbar: [
