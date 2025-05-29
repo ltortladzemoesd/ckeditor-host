@@ -25,10 +25,49 @@
     <button onclick="sendContent()">Submit</button>
 
     <script>
-      // Initialize CKEditor
+      // Register custom Cell Background button BEFORE the editor is created
+      CKEDITOR.plugins.add('cellbgcolor', {
+        init: function(editor) {
+          editor.addCommand('setCellBgColor', {
+            exec: function(editor) {
+              const selection = editor.getSelection();
+              const selectedElement = selection.getStartElement();
+              if (!selectedElement) return;
+
+              const cell = selectedElement.getAscendant(['td', 'th'], true);
+              if (!cell) {
+                alert('Please place your cursor inside a table cell.');
+                return;
+              }
+
+              const input = document.createElement('input');
+              input.type = 'color';
+              input.style.position = 'fixed';
+              input.style.left = '-9999px';
+              document.body.appendChild(input);
+              input.click();
+
+              input.addEventListener('input', () => {
+                const color = input.value;
+                cell.setStyle('background-color', color);
+                document.body.removeChild(input);
+              });
+            }
+          });
+
+          editor.ui.addButton('CellBgColor', {
+            label: 'Cell Background',
+            command: 'setCellBgColor',
+            toolbar: 'colors,50',
+            icon: 'https://img.icons8.com/fluency-systems-regular/24/fill-color.png'
+          });
+        }
+      });
+
+      // Create the editor with custom plugin
       CKEDITOR.replace('editor1', {
         height: 300,
-        extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu',
+        extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu,cellbgcolor',
         removeButtons: '',
         toolbar: [
           { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
@@ -41,44 +80,7 @@
         ]
       });
 
-      // Add Cell Background Button
-      CKEDITOR.on('instanceReady', function (ev) {
-        ev.editor.addCommand('setCellBgColor', {
-          exec: function (editor) {
-            const selection = editor.getSelection();
-            const selectedElement = selection.getStartElement();
-            if (!selectedElement) return;
-
-            const cell = selectedElement.getAscendant(['td', 'th'], true);
-            if (!cell) {
-              alert('Please place your cursor inside a table cell.');
-              return;
-            }
-
-            // Open color picker
-            const input = document.createElement('input');
-            input.type = 'color';
-            input.style.position = 'fixed';
-            input.style.left = '-9999px';
-            document.body.appendChild(input);
-            input.click();
-
-            input.addEventListener('input', () => {
-              const color = input.value;
-              cell.setStyle('background-color', color);
-              document.body.removeChild(input);
-            });
-          }
-        });
-
-        ev.editor.ui.addButton('CellBgColor', {
-          label: 'Cell Background',
-          command: 'setCellBgColor',
-          toolbar: 'colors,50',
-          icon: 'https://img.icons8.com/fluency-systems-regular/24/fill-color.png'
-        });
-      });
-
+      // Send HTML back to parent container
       function sendContent() {
         const html = CKEDITOR.instances.editor1.getData();
         parent.postMessage(html, "*");
