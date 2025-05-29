@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <script src="https://cdn.ckeditor.com/4.25.1-lts/full-all/ckeditor.js"></script>
+    <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
     <style>
-      body { margin: 0; padding: 10px; font-family: Arial; }
+      body { margin: 0; padding: 10px; font-family: Arial; background: #f9f9f9; }
       textarea { width: 100%; height: 300px; }
       button {
         margin-top: 10px;
@@ -19,16 +19,13 @@
 
     <script>
       CKEDITOR.replace('editor1', {
-        extraPlugins: 'colorbutton,colordialog',
-        removeButtons: '',
-        allowedContent: true,
+        height: 300,
+        // No color plugins, only basic toolbar
         toolbar: [
-          { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
-          { name: 'colors', items: ['TextColor', 'BGColor'] },
-          { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
-          { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
-          { name: 'insert', items: ['Table', 'Image', 'Link'] },
-          { name: 'tools', items: ['Maximize'] }
+          { name: 'basicstyles',   items: ['Bold', 'Italic', 'Underline'] },
+          { name: 'paragraph',     items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
+          { name: 'insert',        items: ['Table', 'Image', 'Link'] },
+          { name: 'tools',         items: ['Maximize'] }
         ]
       });
 
