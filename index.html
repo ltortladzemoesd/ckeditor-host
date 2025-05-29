@@ -25,32 +25,17 @@
     <button onclick="sendContent()">Submit</button>
 
     <script>
-      // Register custom Cell Background plugin
-      CKEDITOR.plugins.add('cellbgcolor', {
-        init: function(editor) {
-          editor.addCommand('setCellBgColor', {
-            exec: function(editor) {
+      // Add a context menu plugin for setting cell background
+      CKEDITOR.plugins.add('cellbgmenu', {
+        init: function (editor) {
+          editor.addCommand('setCellBackgroundFromMenu', {
+            exec: function (editor) {
               const selection = editor.getSelection();
-              const ranges = selection.getRanges();
+              const element = selection.getStartElement();
+              const cell = element && element.getAscendant(['td', 'th'], true);
 
-              // Track all unique <td>/<th> elements touched by the selection
-              const selectedCells = new Set();
-
-              for (let range of ranges) {
-                const walker = new CKEDITOR.dom.walker(range);
-                let node;
-                while ((node = walker.next())) {
-                  const cell = node.getAscendant(['td', 'th'], true);
-                  if (cell) selectedCells.add(cell);
-                }
-
-                // Also add the starting cell
-                const startCell = range.startContainer.getAscendant(['td', 'th'], true);
-                if (startCell) selectedCells.add(startCell);
-              }
-
-              if (selectedCells.size === 0) {
-                alert('Please place your cursor inside a table cell or select table cells.');
+              if (!cell) {
+                alert('Please right-click inside a table cell.');
                 return;
               }
 
@@ -63,29 +48,41 @@
 
               input.addEventListener('input', () => {
                 const color = input.value;
-                selectedCells.forEach(cell => cell.setStyle('background-color', color));
+                cell.setStyle('background-color', color);
                 document.body.removeChild(input);
               });
             }
           });
 
-          editor.ui.addButton('CellBgColor', {
-            label: 'Cell Background',
-            command: 'setCellBgColor',
-            toolbar: 'colors,50',
-            icon: 'https://img.icons8.com/fluency-systems-regular/24/fill-color.png'
-          });
+          // Add to right-click context menu
+          if (editor.contextMenu) {
+            editor.addMenuItems({
+              setCellBackground: {
+                label: 'Set Cell Background',
+                command: 'setCellBackgroundFromMenu',
+                group: 'table',
+                icon: 'https://img.icons8.com/fluency-systems-regular/24/fill-color.png'
+              }
+            });
+
+            editor.contextMenu.addListener(function (element) {
+              if (element.getAscendant('td', true) || element.getAscendant('th', true)) {
+                return { setCellBackground: CKEDITOR.TRISTATE_OFF };
+              }
+              return null;
+            });
+          }
         }
       });
 
-      // Initialize the editor
+      // Create the editor
       CKEDITOR.replace('editor1', {
         height: 300,
-        extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu,cellbgcolor',
+        extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu,cellbgmenu',
         removeButtons: '',
         toolbar: [
           { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
-          { name: 'colors', items: ['TextColor', 'BGColor', 'CellBgColor'] },
+          { name: 'colors', items: ['TextColor', 'BGColor'] },
           { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
           { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
           { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
@@ -94,6 +91,7 @@
         ]
       });
 
+      // Submit button
       function sendContent() {
         const html = CKEDITOR.instances.editor1.getData();
         parent.postMessage(html, "*");
