@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
-    <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.ckeditor.com/4.25.1-lts/full/ckeditor.js"></script>
     <style>
       body {
         margin: 0;
@@ -25,7 +25,6 @@
     <button onclick="sendContent()">Submit</button>
 
     <script>
-      // Initialize editor first
       CKEDITOR.replace('editor1', {
         height: 300,
         extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu',
@@ -38,61 +37,29 @@
           { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
           { name: 'insert', items: ['Table'] },
           { name: 'tools', items: ['Maximize'] }
-        ]
-      });
+        ],
+        on: {
+          // Set default styles for each new table cell
+          instanceReady: function(evt) {
+            const editor = evt.editor;
 
-      // When the editor is ready, patch the context menu
-      CKEDITOR.on('instanceReady', function (evt) {
-        var editor = evt.editor;
+            editor.on('insertElement', function(event) {
+              const element = event.data;
 
-        // Add the background color command
-        editor.addCommand('setCellBackgroundColor', {
-          exec: function (editor) {
-            const selection = editor.getSelection();
-            const element = selection.getStartElement();
-            const cell = element && element.getAscendant(['td', 'th'], true);
-
-            if (!cell) {
-              alert('Please right-click inside a table cell.');
-              return;
-            }
-
-            const input = document.createElement('input');
-            input.type = 'color';
-            input.style.position = 'fixed';
-            input.style.left = '-9999px';
-            document.body.appendChild(input);
-            input.click();
-
-            input.addEventListener('input', () => {
-              const color = input.value;
-              cell.setStyle('background-color', color);
-              document.body.removeChild(input);
+              // Apply only to <table> elements
+              if (element && element.getName() === 'table') {
+                const cells = element.find('td,th');
+                for (let i = 0; i < cells.count(); i++) {
+                  const cell = cells.getItem(i);
+                  cell.setStyle('background-color', '#f9f9f9');
+                  cell.setStyle('border', '1px solid #ccc');
+                }
+              }
             });
           }
-        });
-
-        // Add menu item to the context menu
-        if (editor.contextMenu) {
-          editor.addMenuItems({
-            setCellBackgroundColor: {
-              label: 'Set Cell Background',
-              command: 'setCellBackgroundColor',
-              group: 'table',
-              icon: 'https://img.icons8.com/fluency-systems-regular/24/fill-color.png'
-            }
-          });
-
-          editor.contextMenu.addListener(function (element) {
-            if (element && (element.getAscendant('td', true) || element.getAscendant('th', true))) {
-              return { setCellBackgroundColor: CKEDITOR.TRISTATE_OFF };
-            }
-            return null;
-          });
         }
       });
 
-      // Submit function
       function sendContent() {
         const html = CKEDITOR.instances.editor1.getData();
         parent.postMessage(html, "*");
