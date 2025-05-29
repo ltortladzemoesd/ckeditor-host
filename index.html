@@ -1,13 +1,37 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <script src="https://cdn.ckeditor.com/4.25.1-lts/full/ckeditor.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+      }
+      textarea {
+        width: 100%;
+        height: 400px;
+      }
+    </style>
   </head>
   <body>
-    <textarea name="editor1" id="editor1">Test toolbar working?</textarea>
+    <h2>CKEditor 4.25.1-lts Test</h2>
+    <textarea id="editor1">This is a test. The toolbar should be visible above.</textarea>
+
     <script>
-      CKEDITOR.replace('editor1');
+      CKEDITOR.replace('editor1', {
+        height: 400,
+        toolbar: [
+          { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+          { name: 'colors', items: ['TextColor', 'BGColor'] },
+          { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+          { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
+          { name: 'insert', items: ['Table', 'Image', 'Link'] },
+          { name: 'tools', items: ['Maximize'] }
+        ]
+      });
     </script>
   </body>
 </html>
