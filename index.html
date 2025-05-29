@@ -25,58 +25,20 @@
     <button onclick="sendContent()">Submit</button>
 
     <script>
-      // Initialize CKEditor
       CKEDITOR.replace('editor1', {
         height: 300,
         extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu',
         removeButtons: '',
         toolbar: [
           { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
-          { name: 'colors', items: ['TextColor', 'BGColor', 'CellBgColor'] },
+          { name: 'colors', items: ['TextColor', 'BGColor'] },
           { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
           { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
           { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
           { name: 'insert', items: ['Table'] },
           { name: 'tools', items: ['Maximize'] }
-        ]
-      });
-
-      // Add Cell Background Button
-      CKEDITOR.on('instanceReady', function (ev) {
-        ev.editor.addCommand('setCellBgColor', {
-          exec: function (editor) {
-            const selection = editor.getSelection();
-            const selectedElement = selection.getStartElement();
-            if (!selectedElement) return;
-
-            const cell = selectedElement.getAscendant(['td', 'th'], true);
-            if (!cell) {
-              alert('Please place your cursor inside a table cell.');
-              return;
-            }
-
-            // Open color picker
-            const input = document.createElement('input');
-            input.type = 'color';
-            input.style.position = 'fixed';
-            input.style.left = '-9999px';
-            document.body.appendChild(input);
-            input.click();
-
-            input.addEventListener('input', () => {
-              const color = input.value;
-              cell.setStyle('background-color', color);
-              document.body.removeChild(input);
-            });
-          }
-        });
-
-        ev.editor.ui.addButton('CellBgColor', {
-          label: 'Cell Background',
-          command: 'setCellBgColor',
-          toolbar: 'colors,50',
-          icon: 'https://img.icons8.com/fluency-systems-regular/24/fill-color.png'
-        });
+        ],
+        cell_style: true
       });
 
       function sendContent() {
