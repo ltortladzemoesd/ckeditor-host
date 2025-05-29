@@ -25,60 +25,10 @@
     <button onclick="sendContent()">Submit</button>
 
     <script>
-      // Add a context menu plugin for setting cell background
-      CKEDITOR.plugins.add('cellbgmenu', {
-        init: function (editor) {
-          editor.addCommand('setCellBackgroundFromMenu', {
-            exec: function (editor) {
-              const selection = editor.getSelection();
-              const element = selection.getStartElement();
-              const cell = element && element.getAscendant(['td', 'th'], true);
-
-              if (!cell) {
-                alert('Please right-click inside a table cell.');
-                return;
-              }
-
-              const input = document.createElement('input');
-              input.type = 'color';
-              input.style.position = 'fixed';
-              input.style.left = '-9999px';
-              document.body.appendChild(input);
-              input.click();
-
-              input.addEventListener('input', () => {
-                const color = input.value;
-                cell.setStyle('background-color', color);
-                document.body.removeChild(input);
-              });
-            }
-          });
-
-          // Add to right-click context menu
-          if (editor.contextMenu) {
-            editor.addMenuItems({
-              setCellBackground: {
-                label: 'Set Cell Background',
-                command: 'setCellBackgroundFromMenu',
-                group: 'table',
-                icon: 'https://img.icons8.com/fluency-systems-regular/24/fill-color.png'
-              }
-            });
-
-            editor.contextMenu.addListener(function (element) {
-              if (element.getAscendant('td', true) || element.getAscendant('th', true)) {
-                return { setCellBackground: CKEDITOR.TRISTATE_OFF };
-              }
-              return null;
-            });
-          }
-        }
-      });
-
-      // Create the editor
+      // Initialize editor first
       CKEDITOR.replace('editor1', {
         height: 300,
-        extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu,cellbgmenu',
+        extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu',
         removeButtons: '',
         toolbar: [
           { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
@@ -91,7 +41,58 @@
         ]
       });
 
-      // Submit button
+      // When the editor is ready, patch the context menu
+      CKEDITOR.on('instanceReady', function (evt) {
+        var editor = evt.editor;
+
+        // Add the background color command
+        editor.addCommand('setCellBackgroundColor', {
+          exec: function (editor) {
+            const selection = editor.getSelection();
+            const element = selection.getStartElement();
+            const cell = element && element.getAscendant(['td', 'th'], true);
+
+            if (!cell) {
+              alert('Please right-click inside a table cell.');
+              return;
+            }
+
+            const input = document.createElement('input');
+            input.type = 'color';
+            input.style.position = 'fixed';
+            input.style.left = '-9999px';
+            document.body.appendChild(input);
+            input.click();
+
+            input.addEventListener('input', () => {
+              const color = input.value;
+              cell.setStyle('background-color', color);
+              document.body.removeChild(input);
+            });
+          }
+        });
+
+        // Add menu item to the context menu
+        if (editor.contextMenu) {
+          editor.addMenuItems({
+            setCellBackgroundColor: {
+              label: 'Set Cell Background',
+              command: 'setCellBackgroundColor',
+              group: 'table',
+              icon: 'https://img.icons8.com/fluency-systems-regular/24/fill-color.png'
+            }
+          });
+
+          editor.contextMenu.addListener(function (element) {
+            if (element && (element.getAscendant('td', true) || element.getAscendant('th', true))) {
+              return { setCellBackgroundColor: CKEDITOR.TRISTATE_OFF };
+            }
+            return null;
+          });
+        }
+      });
+
+      // Submit function
       function sendContent() {
         const html = CKEDITOR.instances.editor1.getData();
         parent.postMessage(html, "*");
