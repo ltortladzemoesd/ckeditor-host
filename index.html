@@ -31,10 +31,9 @@
     <button onclick="sendContent()">Submit</button>
 
     <script>
-    CKEDITOR.replace('editor1', {
+   CKEDITOR.replace('editor1', {
   height: 300,
-  extraPlugins: 'table,tabletools,colorbutton,colordialog',
-  removeButtons: '',
+  extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu',
   toolbar: [
     { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
     { name: 'colors', items: ['TextColor', 'BGColor'] },
@@ -46,6 +45,7 @@
     { name: 'editing', items: ['Find', 'Replace', 'SelectAll'] }
   ]
 });
+
 
 
       function sendContent() {
