@@ -2,27 +2,37 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <script src="https://cdn.ckeditor.com/4.21.0/full/ckeditor.js"></script>
+    <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
     <style>
       body {
         margin: 0;
-        padding: 20px;
-        font-family: Arial, sans-serif;
-        background: #f4f4f4;
+        padding: 10px;
+        font-family: Arial;
+        background: #f9f9f9;
       }
       textarea {
         width: 100%;
-        height: 400px;
+        height: 300px;
+      }
+      button {
+        margin-top: 10px;
+        padding: 8px 16px;
+        font-size: 16px;
+      }
+
+      /* Hide the red insecure version warning */
+      .cke_notification_warning {
+        display: none !important;
       }
     </style>
   </head>
   <body>
-    <h2>CKEditor 4.21.0 – Toolbar Test</h2>
-    <textarea id="editor1">The toolbar should be visible above.</textarea>
+    <textarea id="editor1">Paste your content here...</textarea>
+    <button onclick="sendContent()">Submit</button>
 
     <script>
       CKEDITOR.replace('editor1', {
-        height: 400,
+        height: 300,
         toolbar: [
           { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
           { name: 'colors', items: ['TextColor', 'BGColor'] },
@@ -32,6 +42,11 @@
           { name: 'tools', items: ['Maximize'] }
         ]
       });
+
+      function sendContent() {
+        const html = CKEDITOR.instances.editor1.getData();
+        parent.postMessage(html, "*");
+      }
     </script>
   </body>
 </html>
