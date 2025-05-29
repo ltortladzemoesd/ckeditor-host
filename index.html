@@ -31,18 +31,22 @@
     <button onclick="sendContent()">Submit</button>
 
     <script>
-      CKEDITOR.replace('editor1', {
+    CKEDITOR.replace('editor1', {
   height: 300,
+  extraPlugins: 'table,tabletools,colorbutton,colordialog',
+  removeButtons: '',
   toolbar: [
     { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
     { name: 'colors', items: ['TextColor', 'BGColor'] },
-    { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+    { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'RemoveFormat'] },
     { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
     { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
-    { name: 'insert', items: ['Table', 'Image', 'Link'] },
-    { name: 'tools', items: ['Maximize'] }
+    { name: 'insert', items: ['Table', 'Image', 'Link', 'Smiley', 'SpecialChar', 'HorizontalRule'] },
+    { name: 'tools', items: ['Maximize', 'ShowBlocks', 'Source'] },
+    { name: 'editing', items: ['Find', 'Replace', 'SelectAll'] }
   ]
 });
+
 
       function sendContent() {
         const html = CKEDITOR.instances.editor1.getData();
