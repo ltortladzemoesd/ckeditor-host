@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
+    <script src="https://cdn.ckeditor.com/4.25.1-lts/full-all/ckeditor.js"></script>
     <style>
       body { margin: 0; padding: 10px; font-family: Arial; }
       textarea { width: 100%; height: 300px; }
@@ -21,6 +21,7 @@
       CKEDITOR.replace('editor1', {
         extraPlugins: 'colorbutton,colordialog',
         removeButtons: '',
+        allowedContent: true,
         toolbar: [
           { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
           { name: 'colors', items: ['TextColor', 'BGColor'] },
