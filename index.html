@@ -1,65 +1,45 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
-    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.ckeditor.com/4.25.1-lts/full/ckeditor.js"></script>
     <style>
-      body { margin: 0; padding: 10px; font-family: Arial; }
-      #editor { min-height: 300px; }
+      body {
+        margin: 0;
+        padding: 10px;
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+      }
+      textarea {
+        width: 100%;
+        height: 300px;
+      }
       button {
         margin-top: 12px;
-        padding: 8px 16px;
+        padding: 10px 20px;
         font-size: 16px;
       }
     </style>
   </head>
   <body>
-    <div id="editor">Paste your content here...</div>
+    <textarea id="editor1">Paste your content here...</textarea>
     <button onclick="sendContent()">Submit</button>
 
     <script>
-      let editorInstance;
-
-      ClassicEditor
-        .create(document.querySelector('#editor'), {
-          toolbar: {
-            items: [
-              'heading', '|',
-              'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', 'highlight', '|',
-              'bold', 'italic', 'underline', 'link', '|',
-              'alignment', '|',
-              'bulletedList', 'numberedList', '|',
-              'insertTable', '|',
-              'undo', 'redo'
-            ]
-          },
-          fontFamily: {
-            options: [
-              'default',
-              'Arial, sans-serif',
-              'Georgia, serif',
-              'Courier New, Courier, monospace',
-              'Lucida Console, Monaco, monospace'
-            ]
-          },
-          fontSize: {
-            options: [10, 12, 14, 'default', 18, 24, 36]
-          },
-          table: {
-            contentToolbar: [
-              'tableColumn', 'tableRow', 'mergeTableCells'
-            ]
-          }
-        })
-        .then(editor => {
-          editorInstance = editor;
-        })
-        .catch(error => {
-          console.error(error);
-        });
+      CKEDITOR.replace('editor1', {
+        height: 300,
+        toolbar: [
+          { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+          { name: 'colors', items: ['TextColor', 'BGColor'] },
+          { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+          { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
+          { name: 'insert', items: ['Table', 'Image', 'Link'] },
+          { name: 'tools', items: ['Maximize'] }
+        ]
+      });
 
       function sendContent() {
-        const html = editorInstance.getData();
+        const html = CKEDITOR.instances.editor1.getData();
         parent.postMessage(html, "*");
       }
     </script>
