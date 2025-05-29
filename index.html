@@ -1,47 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <script src="https://cdn.ckeditor.com/4.25.1-lts/full/ckeditor.js"></script>
-    <style>
-      body {
-        margin: 0;
-        padding: 10px;
-        font-family: Arial, sans-serif;
-        background-color: #f9f9f9;
-      }
-      textarea {
-        width: 100%;
-        height: 300px;
-      }
-      button {
-        margin-top: 12px;
-        padding: 10px 20px;
-        font-size: 16px;
-      }
-    </style>
   </head>
   <body>
-    <textarea id="editor1">Paste your content here...</textarea>
-    <button onclick="sendContent()">Submit</button>
-
+    <textarea name="editor1" id="editor1">Test toolbar working?</textarea>
     <script>
-      CKEDITOR.replace('editor1', {
-        height: 300,
-        toolbar: [
-          { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
-          { name: 'colors', items: ['TextColor', 'BGColor'] },
-          { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
-          { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
-          { name: 'insert', items: ['Table', 'Image', 'Link'] },
-          { name: 'tools', items: ['Maximize'] }
-        ]
-      });
-
-      function sendContent() {
-        const html = CKEDITOR.instances.editor1.getData();
-        parent.postMessage(html, "*");
-      }
+      CKEDITOR.replace('editor1');
     </script>
   </body>
 </html>
