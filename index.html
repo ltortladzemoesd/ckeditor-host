@@ -27,15 +27,14 @@
     </style>
   </head>
   <body>
-    <textarea id="editor1">Loading saved content...</textarea>
-    <button onclick="sendContent()">Submit</button>
+    <textarea id="editor1">Loading content...</textarea>
+    <button onclick="saveToGoogleDocs()">Submit</button>
 
     <script>
       const scriptUrl = "https://script.google.com/macros/s/AKfycbxU6Qmd7IYYfgyt-gC36jDUNDJ9-HXFudOgIDfihDu-PeRNPg7NDHFjTume1JeXLs4x/exe";
+      const docKey = "TEST"; // Static ID for testing
 
-      // Fixed document key for testing
-      const docKey = "TEST";
-
+      // Initialize editor
       CKEDITOR.replace('editor1', {
         height: 300,
         extraPlugins: 'justify',
@@ -51,7 +50,7 @@
         ]
       });
 
-      // Load content from the server when the editor is ready
+      // Load content from Google Docs after editor is ready
       CKEDITOR.on('instanceReady', function () {
         fetch(`${scriptUrl}?docKey=${encodeURIComponent(docKey)}`)
           .then(res => res.text())
@@ -61,26 +60,29 @@
           .catch(err => {
             console.error("Failed to load saved content:", err);
           });
-
-        // Auto-save on change
-        CKEDITOR.instances.editor1.on('change', function () {
-          const content = CKEDITOR.instances.editor1.getData();
-          fetch(scriptUrl, {
-            method: 'POST',
-            body: JSON.stringify({
-              docKey: docKey,
-              content: content
-            }),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-        });
       });
 
-      function sendContent() {
-        const html = CKEDITOR.instances.editor1.getData();
-        parent.postMessage(html, "*");
+      // Save content when Submit is clicked
+      function saveToGoogleDocs() {
+        const content = CKEDITOR.instances.editor1.getData();
+        fetch(scriptUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            docKey: docKey,
+            content: content
+          }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (!response.ok) throw new Error("Failed to save");
+          alert("Saved!");
+        })
+        .catch(error => {
+          console.error("Error saving content:", error);
+          alert("Error saving content");
+        });
       }
     </script>
   </body>
