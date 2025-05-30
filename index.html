@@ -19,14 +19,22 @@
         padding: 8px 16px;
         font-size: 16px;
       }
+
+      /* Hide red version warning */
       .cke_notification_warning {
         display: none !important;
+      }
+
+      #status {
+        margin-top: 10px;
+        font-weight: bold;
       }
     </style>
   </head>
   <body>
     <textarea id="editor1">Paste your content here...</textarea>
     <button onclick="sendContent()">Submit</button>
+    <div id="status"></div>
 
     <script>
       // Initialize CKEditor
@@ -43,27 +51,30 @@
         ]
       });
 
-      // Send content to Google Apps Script Web App
       function sendContent() {
         const html = CKEDITOR.instances.editor1.getData();
+        const status = document.getElementById("status");
 
-        fetch("https://script.google.com/macros/s/AKfycbwRy1iS5hEPeWhONwlRX5l-0mYMQ_ovnGQjJgX7qpFBDPJF8GhiWip9XZIbqeFrSvb-/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbyk77Rg2R1o9H68FudMUzA6GtLlZJfbp4oZqckXj_Kd3LG28N0s-2ngVViUhADxbUxQ/exec", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ content: html })
         })
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === "success") {
-            alert("✅ Content saved to Google Docs!");
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.status === "success") {
+            status.innerText = "✅ Content saved to Google Docs!";
+            status.style.color = "green";
           } else {
-            alert("❌ Server Error: " + data.error);
+            status.innerText = "❌ Error saving content: " + res.error;
+            status.style.color = "red";
           }
         })
-        .catch(error => {
-          alert("❌ Request Failed: " + error.message);
+        .catch((err) => {
+          status.innerText = "❌ Request Failed: " + err.message;
+          status.style.color = "red";
         });
       }
     </script>
