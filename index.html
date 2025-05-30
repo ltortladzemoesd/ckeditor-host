@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
     <style>
       body {
         margin: 0;
         padding: 10px;
         font-family: Arial;
+        background: #f9f9f9;
       }
       textarea {
         width: 100%;
@@ -19,8 +20,8 @@
         font-size: 16px;
       }
 
-      /* ✅ Hides the red security message from CKEditor 4.22.1 */
-      .cke_bottom {
+      /* Hide the red insecure version warning */
+      .cke_notification_warning {
         display: none !important;
       }
     </style>
@@ -32,18 +33,14 @@
     <script>
       CKEDITOR.replace('editor1', {
         height: 300,
-        extraPlugins: 'table,tabletools,colorbutton,colordialog,contextmenu',
-        removeButtons: '',
         toolbar: [
           { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
           { name: 'colors', items: ['TextColor', 'BGColor'] },
           { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
           { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
-          { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
-          { name: 'insert', items: ['Table'] },
+          { name: 'insert', items: ['Table', 'Image', 'Link'] },
           { name: 'tools', items: ['Maximize'] }
-        ],
-        cell_style: true
+        ]
       });
 
       function sendContent() {
