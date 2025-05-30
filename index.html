@@ -10,24 +10,30 @@
         font-family: Arial;
         background: #f9f9f9;
       }
+      textarea {
+        width: 100%;
+        height: 300px;
+      }
       button {
         margin-top: 10px;
         padding: 8px 16px;
         font-size: 16px;
       }
+
+      /* ✅ Hides the insecure version warning */
       .cke_notification_warning {
         display: none !important;
       }
     </style>
   </head>
   <body>
-    <textarea id="editor1">Loading saved content...</textarea>
-    <button onclick="saveToGoogleDocs()">Submit</button>
+    <textarea id="editor1">Loading content...</textarea>
+    <button onclick="saveContent()">Submit</button>
 
     <script>
-      const scriptUrl = "https://script.google.com/macros/s/AKfycbw4X02Km7yqpEXy7z-KUv-lbrMTy-0o91ybqpOrt_6M_L68aeoY0jlWgI_l7HZpNAYl/exec";
-      const docKey = "TEST"; // You can later change this to country name dynamically
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbyOz6WQcJsUORbb7XU-lJBTws57WFZxXVmvm9Bam3FMx79gt3jJDDf_NKL067geSw-D/exec";
 
+      // ✅ Initialize CKEditor
       CKEDITOR.replace('editor1', {
         height: 300,
         toolbar: [
@@ -41,42 +47,40 @@
         ]
       });
 
-      CKEDITOR.on('instanceReady', function () {
-        fetch(`${scriptUrl}?docKey=${encodeURIComponent(docKey)}`)
-          .then(res => res.text())
-          .then(data => {
-            CKEDITOR.instances.editor1.setData(data);
-          })
-          .catch(err => {
-            console.error("Failed to load:", err);
-          });
-      });
-
-      function saveToGoogleDocs() {
-        const content = CKEDITOR.instances.editor1.getData();
+      // ✅ Save to Google Docs
+      function saveContent() {
+        const html = CKEDITOR.instances.editor1.getData();
         fetch(scriptUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            docKey: docKey,
-            content: content
-          })
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: html })
         })
-        .then(response => response.text())
-        .then(result => {
-          if (result.startsWith("Saved")) {
-            alert("✅ Content saved successfully.");
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === "success") {
+            alert("✅ Content saved to Google Docs!");
           } else {
-            throw new Error(result);
+            alert("❌ Error: " + data.error);
           }
         })
-        .catch(err => {
-          console.error("Save error:", err);
-          alert("❌ Error saving content.");
+        .catch(error => {
+          alert("❌ Request Failed: " + error.message);
         });
       }
+
+      // ✅ Load from Google Docs on page load
+      window.onload = function () {
+        fetch(scriptUrl)
+          .then(response => response.json())
+          .then(data => {
+            if (data.content) {
+              CKEDITOR.instances.editor1.setData(data.content);
+            }
+          })
+          .catch(error => {
+            console.warn("❌ Could not load saved content:", error);
+          });
+      };
     </script>
   </body>
 </html>
