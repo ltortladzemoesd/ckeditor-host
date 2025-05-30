@@ -10,17 +10,11 @@
         font-family: Arial;
         background: #f9f9f9;
       }
-      textarea {
-        width: 100%;
-        height: 300px;
-      }
       button {
         margin-top: 10px;
         padding: 8px 16px;
         font-size: 16px;
       }
-
-      /* Hide the red insecure version warning */
       .cke_notification_warning {
         display: none !important;
       }
@@ -31,13 +25,11 @@
     <button onclick="saveToGoogleDocs()">Submit</button>
 
     <script>
-      const scriptUrl = "https://script.google.com/macros/s/AKfycbxU6Qmd7IYYfgyt-gC36jDUNDJ9-HXFudOgIDfihDu-PeRNPg7NDHFjTume1JeXLs4x/exec";
-      const docKey = "TEST"; // fixed ID for testing
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbw4X02Km7yqpEXy7z-KUv-lbrMTy-0o91ybqpOrt_6M_L68aeoY0jlWgI_l7HZpNAYl/exec";
+      const docKey = "TEST"; // You can later change this to country name dynamically
 
       CKEDITOR.replace('editor1', {
         height: 300,
-        extraPlugins: 'justify',
-        removeButtons: '',
         toolbar: [
           { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
           { name: 'colors', items: ['TextColor', 'BGColor'] },
@@ -49,7 +41,6 @@
         ]
       });
 
-      // Load saved content when editor is ready
       CKEDITOR.on('instanceReady', function () {
         fetch(`${scriptUrl}?docKey=${encodeURIComponent(docKey)}`)
           .then(res => res.text())
@@ -57,30 +48,33 @@
             CKEDITOR.instances.editor1.setData(data);
           })
           .catch(err => {
-            console.error("Failed to load saved content:", err);
+            console.error("Failed to load:", err);
           });
       });
 
-      // Save content to Google Docs when Submit is clicked
       function saveToGoogleDocs() {
         const content = CKEDITOR.instances.editor1.getData();
         fetch(scriptUrl, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({
             docKey: docKey,
             content: content
-          }),
-          headers: {
-            'Content-Type': 'application/json'
+          })
+        })
+        .then(response => response.text())
+        .then(result => {
+          if (result.startsWith("Saved")) {
+            alert("✅ Content saved successfully.");
+          } else {
+            throw new Error(result);
           }
         })
-        .then(response => {
-          if (!response.ok) throw new Error("Failed to save");
-          alert("Saved!");
-        })
-        .catch(error => {
-          console.error("Error saving content:", error);
-          alert("Error saving content");
+        .catch(err => {
+          console.error("Save error:", err);
+          alert("❌ Error saving content.");
         });
       }
     </script>
