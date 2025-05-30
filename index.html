@@ -19,7 +19,6 @@
         padding: 8px 16px;
         font-size: 16px;
       }
-
       /* Hide the red insecure version warning */
       .cke_notification_warning {
         display: none !important;
@@ -27,12 +26,19 @@
     </style>
   </head>
   <body>
-    <textarea id="editor1">Paste your content here...</textarea>
+    <textarea id="editor1">Loading saved content...</textarea>
     <button onclick="sendContent()">Submit</button>
 
     <script>
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbxU6Qmd7IYYfgyt-gC36jDUNDJ9-HXFudOgIDfihDu-PeRNPg7NDHFjTume1JeXLs4x/exe";
+
+      // Replace this with how your Wix page determines the selected country
+      let selectedCountry = localStorage.getItem("selectedCountry") || "Georgia";
+
       CKEDITOR.replace('editor1', {
         height: 300,
+        extraPlugins: 'justify',
+        removeButtons: '',
         toolbar: [
           { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
           { name: 'colors', items: ['TextColor', 'BGColor'] },
@@ -44,6 +50,34 @@
         ]
       });
 
+      // Load saved content after editor is ready
+      CKEDITOR.on('instanceReady', function () {
+        fetch(`${scriptUrl}?country=${encodeURIComponent(selectedCountry)}`)
+          .then(res => res.text())
+          .then(data => {
+            CKEDITOR.instances.editor1.setData(data);
+          })
+          .catch(err => {
+            console.error("Failed to load content:", err);
+          });
+
+        // Save on every change
+        CKEDITOR.instances.editor1.on('change', function () {
+          const currentData = CKEDITOR.instances.editor1.getData();
+          fetch(scriptUrl, {
+            method: 'POST',
+            body: JSON.stringify({
+              country: selectedCountry,
+              content: currentData
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+        });
+      });
+
+      // Optional: use this if you need to send content manually too
       function sendContent() {
         const html = CKEDITOR.instances.editor1.getData();
         parent.postMessage(html, "*");
