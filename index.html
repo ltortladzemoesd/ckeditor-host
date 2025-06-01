@@ -1,59 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Information Document</title>
+  <meta charset="UTF-8">
+  <title>Country Editor</title>
 
-  <!-- CKEditor 4.22.1 (original version) -->
+  <!-- CKEditor -->
   <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
 
-  <!-- Optional: PDF Export -->
+  <!-- PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
     body {
-      margin: 0;
-      padding: 10px;
       font-family: Arial;
+      padding: 20px;
       background: #f9f9f9;
     }
-    label {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 8px;
-      display: block;
-    }
-    textarea {
-      width: 100%;
-      height: 300px;
-    }
-    button {
-      margin-top: 10px;
-      padding: 8px 16px;
+
+    select, button {
+      margin: 10px 0;
+      padding: 8px;
       font-size: 16px;
     }
+
+    .section {
+      margin-top: 20px;
+      background: #fff;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    .section summary {
+      font-weight: bold;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    label {
+      margin-top: 10px;
+      font-weight: bold;
+      display: block;
+    }
+
     #status {
       margin-top: 10px;
       font-weight: bold;
     }
-
-    /* Hide version warning */
-    .cke_notification_warning {
-      display: none !important;
-    }
   </style>
 </head>
-
 <body>
-  <label for="editor1">Information Document</label>
-  <textarea id="editor1">Paste your content here...</textarea>
-  <br />
-  <button onclick="saveContent()">Save</button>
-  <button onclick="exportPDF()">Export PDF</button>
+  <h2>Choose a Country</h2>
+  <select id="countrySelect">
+    <option value="">-- Select Country --</option>
+    <option value="GEORGIA">Georgia</option>
+    <option value="HUNGARY">Hungary</option>
+    <option value="GERMANY">Germany</option>
+  </select>
+
+  <div id="editorSections"></div>
+
+  <button onclick="saveAll()">Save All</button>
+  <button onclick="exportAll()">Export PDF</button>
   <div id="status"></div>
 
   <script>
@@ -61,52 +73,123 @@
       apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
       authDomain: "ckeditor-content-saver.firebaseapp.com",
       projectId: "ckeditor-content-saver",
-      storageBucket: "ckeditor-content-saver.firebasestorage.app",
-      messagingSenderId: "429325764295",
-      appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    CKEDITOR.replace('editor1', {
-      height: 300,
-      toolbar: [
-        { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
-        { name: 'colors', items: ['TextColor', 'BGColor'] },
-        { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
-        { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
-        { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
-        { name: 'insert', items: ['Table', 'Image', 'Link'] },
-        { name: 'tools', items: ['Maximize'] }
-      ]
+    const sections = [
+      "MFA", "Trade Statistics", "Trade Policy", "Investments",
+      "Tourism", "Transport", "Energy", "Communications", "Innovation"
+    ];
+
+    const editorInstances = {};
+    const editorSections = document.getElementById("editorSections");
+
+    // Load sections
+    sections.forEach((sectionKey) => {
+      const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
+
+      const container = document.createElement("details");
+      container.className = "section";
+      container.innerHTML = `
+        <summary>${sectionKey}</summary>
+        <label for="${safeKey}_info">Information Document</label>
+        <textarea id="${safeKey}_info">Loading...</textarea>
+
+        <label for="${safeKey}_discussion">Discussion Points</label>
+        <textarea id="${safeKey}_discussion">Loading...</textarea>
+      `;
+      editorSections.appendChild(container);
     });
 
-    // Load existing content
-    db.collection("ckeditor-entries").doc("information-document").get().then((doc) => {
-      if (doc.exists) {
-        CKEDITOR.instances.editor1.setData(doc.data().html);
-      }
-    });
-
-    function saveContent() {
-      const html = CKEDITOR.instances.editor1.getData();
-      db.collection("ckeditor-entries").doc("information-document").set({ html })
-        .then(() => {
-          document.getElementById("status").innerText = "✅ Successfully Saved";
-          document.getElementById("status").style.color = "green";
-        })
-        .catch((err) => {
-          document.getElementById("status").innerText = "❌ Error: " + err.message;
-          document.getElementById("status").style.color = "red";
+    // Initialize CKEditor after DOM ready
+    window.addEventListener("load", () => {
+      sections.forEach((sectionKey) => {
+        const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
+        ["info", "discussion"].forEach((type) => {
+          const id = `${safeKey}_${type}`;
+          editorInstances[id] = CKEDITOR.replace(id, {
+            height: 200,
+            toolbar: [
+              { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+              { name: 'colors', items: ['TextColor', 'BGColor'] },
+              { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+              { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
+              { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
+              { name: 'insert', items: ['Table', 'Image', 'Link'] },
+              { name: 'tools', items: ['Maximize'] }
+            ]
+          });
         });
+      });
+    });
+
+    document.getElementById("countrySelect").addEventListener("change", () => {
+      const country = getCountry();
+      if (!country) return;
+
+      sections.forEach((sectionKey) => {
+        const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
+        ["info", "discussion"].forEach((type) => {
+          const id = `${safeKey}_${type}`;
+          const docRef = db.collection("ckeditor-content").doc(country).collection(sectionKey).doc(type);
+          docRef.get().then((doc) => {
+            const data = doc.exists ? doc.data().html : "";
+            editorInstances[id].setData(data);
+          });
+        });
+      });
+
+      document.getElementById("status").innerText = "Content loaded for " + country;
+    });
+
+    function getCountry() {
+      return document.getElementById("countrySelect").value.trim().toUpperCase();
     }
 
-    function exportPDF() {
-      const html = CKEDITOR.instances.editor1.getData();
-      const temp = document.createElement("div");
-      temp.innerHTML = html;
-      html2pdf().from(temp).save("information-document.pdf");
+    function saveAll() {
+      const country = getCountry();
+      if (!country) {
+        alert("Please select a country first.");
+        return;
+      }
+
+      const promises = [];
+
+      sections.forEach((sectionKey) => {
+        const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
+        ["info", "discussion"].forEach((type) => {
+          const id = `${safeKey}_${type}`;
+          const content = editorInstances[id].getData();
+          const docRef = db.collection("ckeditor-content").doc(country).collection(sectionKey).doc(type);
+          promises.push(docRef.set({ html: content }));
+        });
+      });
+
+      Promise.all(promises).then(() => {
+        document.getElementById("status").innerText = "✅ Successfully Saved";
+        document.getElementById("status").style.color = "green";
+      }).catch((err) => {
+        document.getElementById("status").innerText = "❌ Error: " + err.message;
+        document.getElementById("status").style.color = "red";
+      });
+    }
+
+    function exportAll() {
+      const container = document.createElement("div");
+
+      sections.forEach((sectionKey) => {
+        const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
+        const info = editorInstances[`${safeKey}_info`].getData();
+        const discussion = editorInstances[`${safeKey}_discussion`].getData();
+
+        container.innerHTML += `<h2>${sectionKey}</h2>`;
+        container.innerHTML += `<h3>Information Document</h3>${info}`;
+        container.innerHTML += `<h3>Discussion Points</h3>${discussion}`;
+        container.innerHTML += `<hr>`;
+      });
+
+      html2pdf().from(container).save(getCountry() + "-report.pdf");
     }
   </script>
 </body>
