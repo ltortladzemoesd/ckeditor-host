@@ -2,45 +2,34 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>CKEditor with Firebase</title>
+  <title>CKEditor Country Fields</title>
   <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
-  <script src="https://rawcdn.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js"></script>
   <style>
     body {
       font-family: Arial;
-      padding: 20px;
-      background: #f2f2f2;
+      margin: 40px;
+      background: #f9f9f9;
     }
-    h2 {
-      margin-top: 30px;
+    h1 {
+      text-align: center;
+    }
+    select, button {
+      font-size: 16px;
+      padding: 6px 12px;
+      margin: 10px 0;
     }
     .section {
       border: 1px solid #ccc;
-      background: #fff;
+      border-radius: 8px;
       padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 10px;
+      margin-bottom: 30px;
+      background: #fff;
     }
     .ckeditor-label {
-      font-weight: bold;
       margin-top: 10px;
-    }
-    button {
-      padding: 10px 16px;
-      font-size: 16px;
-      margin: 10px 5px;
-      cursor: pointer;
-    }
-    select {
-      font-size: 16px;
-      padding: 5px;
-      margin-bottom: 20px;
-    }
-    #status {
       font-weight: bold;
-      margin-top: 10px;
     }
     .cke_notification_warning {
       display: none !important;
@@ -49,157 +38,144 @@
 </head>
 <body>
 
-<h1>Information Document</h1>
-<select id="countrySelect">
-  <option value="">Choose a country</option>
-  <option value="Georgia">Georgia</option>
-  <option value="Hungary">Hungary</option>
-  <option value="Germany">Germany</option>
-</select>
+  <h1>Country Editor</h1>
 
-<div id="sectionsContainer"></div>
+  <label for="countrySelect">Choose Country:</label>
+  <select id="countrySelect">
+    <option value="">-- Select --</option>
+    <option>Georgia</option>
+    <option>Germany</option>
+    <option>France</option>
+  </select>
 
-<div id="status"></div>
-<button onclick="saveAll()">Save All</button>
-<button onclick="previewAll()">Preview</button>
+  <div id="editorContainer"></div>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
-    authDomain: "ckeditor-content-saver.firebaseapp.com",
-    projectId: "ckeditor-content-saver",
-    storageBucket: "ckeditor-content-saver.appspot.com",
-    messagingSenderId: "429325764295",
-    appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
-  const sections = [
-    "MFA", "Trade Statistics", "Trade Policy", "Investments",
-    "Tourism", "Transport", "Energy", "Communications", "Innovation"
-  ];
+    const firebaseConfig = {
+      apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
+      authDomain: "ckeditor-content-saver.firebaseapp.com",
+      projectId: "ckeditor-content-saver",
+      storageBucket: "ckeditor-content-saver.appspot.com",
+      messagingSenderId: "429325764295",
+      appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
+    };
 
-  const editorInstances = {};
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  function getCountry() {
-    return document.getElementById("countrySelect").value.trim();
-  }
+    const sections = [
+      "MFA", "Trade Statistics", "Trade Policy", "Investments",
+      "Tourism", "Transport", "Energy", "Communications", "Innovation"
+    ];
 
-  document.getElementById("countrySelect").addEventListener("change", () => {
-    const country = getCountry();
-    if (!country) return;
+    const editorInstances = {};
 
-    const container = document.getElementById("sectionsContainer");
-    container.innerHTML = "";
+    const countrySelect = document.getElementById("countrySelect");
+    const editorContainer = document.getElementById("editorContainer");
 
-    sections.forEach((sectionKey) => {
+    countrySelect.addEventListener("change", async () => {
+      editorContainer.innerHTML = "";
+
+      const country = countrySelect.value;
+      if (!country) return;
+
+      for (const sectionKey of sections) {
+        const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
+        const infoId = `${safeKey}_info`;
+        const discussionId = `${safeKey}_discussion`;
+
+        const div = document.createElement("div");
+        div.className = "section";
+        div.innerHTML = `
+          <h2>${sectionKey}</h2>
+          <div class="ckeditor-label">Information Document:</div>
+          <textarea id="${infoId}"></textarea>
+          <button onclick="saveSingleField('${sectionKey}', 'info')">💾 Save Info</button>
+          <button onclick="previewSingleField('${sectionKey}', 'info')">👁️ Preview Info</button>
+          <br><br>
+          <div class="ckeditor-label">Discussion Points:</div>
+          <textarea id="${discussionId}"></textarea>
+          <button onclick="saveSingleField('${sectionKey}', 'discussion')">💾 Save Discussion</button>
+          <button onclick="previewSingleField('${sectionKey}', 'discussion')">👁️ Preview Discussion</button>
+          <br><br>
+          <span id="${safeKey}_status" style="font-weight: bold;"></span>
+        `;
+        editorContainer.appendChild(div);
+
+        // Initialize editors
+        editorInstances[infoId] = CKEDITOR.replace(infoId, { height: 200 });
+        editorInstances[discussionId] = CKEDITOR.replace(discussionId, { height: 200 });
+
+        // Load saved data
+        const infoRef = doc(db, "ckeditor-content", `${country}_${safeKey}_info`);
+        const discussionRef = doc(db, "ckeditor-content", `${country}_${safeKey}_discussion`);
+
+        const [infoSnap, discussionSnap] = await Promise.all([getDoc(infoRef), getDoc(discussionRef)]);
+        if (infoSnap.exists()) editorInstances[infoId].setData(infoSnap.data().content);
+        if (discussionSnap.exists()) editorInstances[discussionId].setData(discussionSnap.data().content);
+      }
+    });
+
+    window.getCountry = () => document.getElementById("countrySelect").value;
+
+    window.saveSingleField = async (sectionKey, type) => {
+      const country = getCountry();
+      if (!country) {
+        alert("Please select a country.");
+        return;
+      }
+
       const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
-      const infoId = `${safeKey}_info`;
-      const discussionId = `${safeKey}_discussion`;
+      const fieldId = `${safeKey}_${type}`;
+      const content = editorInstances[fieldId].getData();
+      const ref = doc(db, "ckeditor-content", `${country}_${safeKey}_${type}`);
+      const status = document.getElementById(`${safeKey}_status`);
 
-      const div = document.createElement("div");
-      div.className = "section";
-      div.innerHTML = `
-        <h2>${sectionKey}</h2>
-        <div class="ckeditor-label">Information Document:</div>
-        <textarea id="${infoId}"></textarea>
-        <div class="ckeditor-label">Discussion Points:</div>
-        <textarea id="${discussionId}"></textarea>
-      `;
-      container.appendChild(div);
+      status.innerText = "Saving...";
+      try {
+        await setDoc(ref, { content });
+        status.innerText = `✅ ${type === 'info' ? 'Information' : 'Discussion'} Saved`;
+        status.style.color = "green";
+      } catch (err) {
+        status.innerText = `❌ Error: ${err.message}`;
+        status.style.color = "red";
+      }
+    };
 
-      CKEDITOR.replace(infoId, { height: 150 });
-      CKEDITOR.replace(discussionId, { height: 150 });
-
-      editorInstances[infoId] = CKEDITOR.instances[infoId];
-      editorInstances[discussionId] = CKEDITOR.instances[discussionId];
-    });
-
-    // Load data
-    sections.forEach((sectionKey) => {
+    window.previewSingleField = (sectionKey, type) => {
+      const country = getCountry();
       const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
-      const infoRef = db.collection("ckeditor-content").doc(`${country}_${safeKey}_info`);
-      const discussionRef = db.collection("ckeditor-content").doc(`${country}_${safeKey}_discussion`);
+      const fieldId = `${safeKey}_${type}`;
+      const content = editorInstances[fieldId].getData().trim();
 
-      infoRef.get().then(doc => {
-        if (doc.exists) editorInstances[`${safeKey}_info`].setData(doc.data().content);
-      });
+      if (!content) {
+        alert("This field is empty.");
+        return;
+      }
 
-      discussionRef.get().then(doc => {
-        if (doc.exists) editorInstances[`${safeKey}_discussion`].setData(doc.data().content);
-      });
-    });
-  });
+      const title = type === "info" ? "Information Document" : "Discussion Points";
 
-  function saveAll() {
-    const country = getCountry();
-    if (!country) {
-      alert("Please select a country first.");
-      return;
-    }
+      const html = `<html><head><title>${title} - ${sectionKey}</title>
+        <style>
+          body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; }
+          h1, h2 { text-align: center; }
+          h3 { margin-top: 20px; }
+        </style>
+      </head><body>
+      <h1>${country}</h1>
+      <h2>${sectionKey}</h2>
+      <h3>${title}</h3>
+      ${content}
+      </body></html>`;
 
-    const status = document.getElementById("status");
-    let promises = [];
-
-    sections.forEach((sectionKey) => {
-      const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
-      const infoContent = editorInstances[`${safeKey}_info`].getData();
-      const discussionContent = editorInstances[`${safeKey}_discussion`].getData();
-
-      const infoRef = db.collection("ckeditor-content").doc(`${country}_${safeKey}_info`);
-      const discussionRef = db.collection("ckeditor-content").doc(`${country}_${safeKey}_discussion`);
-
-      promises.push(infoRef.set({ content: infoContent }));
-      promises.push(discussionRef.set({ content: discussionContent }));
-    });
-
-    Promise.all(promises).then(() => {
-      status.innerText = "✅ Successfully Saved";
-      status.style.color = "green";
-    }).catch((err) => {
-      status.innerText = "❌ Error: " + err.message;
-      status.style.color = "red";
-    });
-  }
-
-  function previewAll() {
-    const country = getCountry();
-    if (!country) {
-      alert("Please select a country first.");
-      return;
-    }
-
-    let html = `<html><head><title>${country} Preview</title>
-      <style>
-        body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; }
-        h1 { text-align: center; }
-        h2 { margin-top: 30px; color: #1a1a1a; }
-        h3 { margin-top: 10px; color: #333; }
-        hr { margin: 30px 0; }
-      </style>
-    </head><body>
-    <h1>${country}</h1>`;
-
-    sections.forEach((sectionKey) => {
-      const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
-      const info = editorInstances[`${safeKey}_info`].getData();
-      const discussion = editorInstances[`${safeKey}_discussion`].getData();
-
-      html += `<h2>${sectionKey}</h2>`;
-      html += `<h3>Information Document</h3>${info}`;
-      html += `<h3>Discussion Points</h3>${discussion}`;
-      html += `<hr>`;
-    });
-
-    html += `</body></html>`;
-
-    const previewWindow = window.open("", "_blank");
-    previewWindow.document.open();
-    previewWindow.document.write(html);
-    previewWindow.document.close();
-  }
-</script>
-
+      const previewWindow = window.open("", "_blank");
+      previewWindow.document.open();
+      previewWindow.document.write(html);
+      previewWindow.document.close();
+    };
+  </script>
 </body>
 </html>
