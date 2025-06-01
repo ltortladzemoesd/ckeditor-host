@@ -15,43 +15,49 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
-    body {
-      font-family: Arial;
-      padding: 20px;
-      background: #f9f9f9;
-    }
+  body {
+    font-family: Arial;
+    padding: 20px;
+    background: #f9f9f9;
+  }
 
-    select, button {
-      margin: 10px 0;
-      padding: 8px;
-      font-size: 16px;
-    }
+  select, button {
+    margin: 10px 0;
+    padding: 8px;
+    font-size: 16px;
+  }
 
-    .section {
-      margin-top: 20px;
-      background: #fff;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-    }
+  .section {
+    margin-top: 20px;
+    background: #fff;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
 
-    .section summary {
-      font-weight: bold;
-      font-size: 18px;
-      cursor: pointer;
-    }
+  .section summary {
+    font-weight: bold;
+    font-size: 18px;
+    cursor: pointer;
+  }
 
-    label {
-      margin-top: 10px;
-      font-weight: bold;
-      display: block;
-    }
+  label {
+    margin-top: 10px;
+    font-weight: bold;
+    display: block;
+  }
 
-    #status {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-  </style>
+  #status {
+    margin-top: 10px;
+    font-weight: bold;
+  }
+
+  /* 🔒 Hide insecure version warning from CKEditor */
+  .cke_notification_warning {
+    display: none !important;
+  }
+</style>
+
 </head>
 <body>
   <h2>Choose a Country</h2>
