@@ -71,7 +71,8 @@
   <div id="editorSections"></div>
 
   <button onclick="saveAll()">Save All</button>
-  <button onclick="exportAll()">Export PDF</button>
+  <button onclick="previewAll()">Preview</button>
+
   <div id="status"></div>
 
   <div id="pdfContainer" style="display:none;"></div>
@@ -215,6 +216,45 @@
       container.style.display = "none"; // hide again
     });
 }
+
+    <script>
+  function previewAll() {
+    const country = getCountry();
+    if (!country) {
+      alert("Please select a country first.");
+      return;
+    }
+
+    let html = `<html><head><title>${country} Preview</title>
+      <style>
+        body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; }
+        h1 { text-align: center; }
+        h2 { margin-top: 30px; color: #1a1a1a; }
+        h3 { margin-top: 10px; color: #333; }
+        hr { margin: 30px 0; }
+      </style>
+    </head><body>
+    <h1>${country}</h1>`;
+
+    sections.forEach((sectionKey) => {
+      const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
+      const info = editorInstances[`${safeKey}_info`].getData();
+      const discussion = editorInstances[`${safeKey}_discussion`].getData();
+
+      html += `<h2>${sectionKey}</h2>`;
+      html += `<h3>Information Document</h3>${info}`;
+      html += `<h3>Discussion Points</h3>${discussion}`;
+      html += `<hr>`;
+    });
+
+    html += `</body></html>`;
+
+    const previewWindow = window.open("", "_blank");
+    previewWindow.document.open();
+    previewWindow.document.write(html);
+    previewWindow.document.close();
+  }
+</script>
 
   </script>
 </body>
