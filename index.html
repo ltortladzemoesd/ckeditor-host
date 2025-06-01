@@ -1,79 +1,83 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
-    <style>
-      body {
-        margin: 0;
-        padding: 10px;
-        font-family: Arial;
-        background: #f9f9f9;
-      }
-      textarea {
-        width: 100%;
-        height: 300px;
-      }
-      button {
-        margin-top: 10px;
-        padding: 8px 16px;
-        font-size: 16px;
-      }
-      .cke_notification_warning {
-        display: none !important;
-      }
-      #status {
-        margin-top: 10px;
-        font-weight: bold;
-      }
-    </style>
-  </head>
-  <body>
-    <textarea id="editor1">Paste your content here...</textarea>
-    <button onclick="sendContent()">Submit</button>
-    <div id="status"></div>
+<head>
+  <meta charset="UTF-8" />
+  <title>CKEditor + Firebase</title>
 
-    <script>
-      // Initialize CKEditor
-      CKEDITOR.replace('editor1', {
-        height: 300,
-        toolbar: [
-          { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
-          { name: 'colors', items: ['TextColor', 'BGColor'] },
-          { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
-          { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
-          { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
-          { name: 'insert', items: ['Table', 'Image', 'Link'] },
-          { name: 'tools', items: ['Maximize'] }
-        ]
-      });
+  <!-- Use 4.25.1-lts instead of 4.22.1 for security -->
+  <script src="https://cdn.ckeditor.com/4.25.1-lts/full/ckeditor.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-      function sendContent() {
-        const html = CKEDITOR.instances.editor1.getData();
-        const status = document.getElementById("status");
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f7f7f7; }
+    button { margin: 10px 5px; padding: 10px 20px; }
+    #status { margin-top: 10px; font-weight: bold; }
 
-        fetch("https://script.google.com/macros/s/AKfycbwOdXHD5RFRNVd0CBuQuW9D5mI_EC5_J78F54sgc1T9SYtY3EF9hsSYOM9CLETo39rK/exec", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content: html }),
+    /* Hide CKEditor version warning */
+    .cke_notification_warning { display: none !important; }
+  </style>
+</head>
+<body>
+  <h2>Rich Text Editor with Firebase</h2>
+
+  <textarea id="editor1">Loading saved content...</textarea><br>
+  <button onclick="saveContent()">Save</button>
+  <button onclick="exportPDF()">Export PDF</button>
+  <div id="status"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
+      authDomain: "ckeditor-content-saver.firebaseapp.com",
+      projectId: "ckeditor-content-saver",
+      storageBucket: "ckeditor-content-saver.firebasestorage.app",
+      messagingSenderId: "429325764295",
+      appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Initialize CKEditor with custom toolbar
+    CKEDITOR.replace('editor1', {
+      height: 300,
+      toolbar: [
+        { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+        { name: 'colors', items: ['TextColor', 'BGColor'] },
+        { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+        { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
+        { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
+        { name: 'insert', items: ['Table', 'Image', 'Link'] },
+        { name: 'tools', items: ['Maximize'] }
+      ]
+    });
+
+    // Load content on page load
+    db.collection("ckeditor-entries").doc("demo").get().then((doc) => {
+      if (doc.exists) {
+        CKEDITOR.instances.editor1.setData(doc.data().html);
+      }
+    });
+
+    function saveContent() {
+      const html = CKEDITOR.instances.editor1.getData();
+      db.collection("ckeditor-entries").doc("demo").set({ html })
+        .then(() => {
+          document.getElementById("status").innerText = "✅ Saved";
         })
-          .then((res) => res.json())
-          .then((res) => {
-            if (res.status === "success") {
-              status.innerText = "✅ Content saved to Google Docs!";
-              status.style.color = "green";
-            } else {
-              status.innerText = "❌ Error saving content: " + res.error;
-              status.style.color = "red";
-            }
-          })
-          .catch((err) => {
-            status.innerText = "❌ Request Failed: " + err.message;
-            status.style.color = "red";
-          });
-      }
-    </script>
-  </body>
+        .catch((err) => {
+          document.getElementById("status").innerText = "❌ Error: " + err.message;
+        });
+    }
+
+    function exportPDF() {
+      const html = CKEDITOR.instances.editor1.getData();
+      const container = document.createElement("div");
+      container.innerHTML = html;
+      html2pdf().from(container).save("ckeditor-export.pdf");
+    }
+  </script>
+</body>
 </html>
