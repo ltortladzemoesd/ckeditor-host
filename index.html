@@ -17,23 +17,30 @@
     }
     select, button {
       font-size: 16px;
-      padding: 6px 12px;
+      padding: 8px 16px;
       margin: 10px 10px 10px 0;
+      border-radius: 12px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
     }
     .section {
-      border: 1px solid #ccc;
-      border-radius: 10px;
       margin-bottom: 20px;
       background: #fff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      padding: 12px;
+      border-radius: 16px;
     }
     .section-header {
       background: #eee;
-      padding: 14px;
+      padding: 16px;
       cursor: pointer;
       font-weight: bold;
-      border-bottom: 1px solid #ccc;
       user-select: none;
+      border-radius: 12px;
     }
     .section-content {
       display: none;
@@ -49,6 +56,10 @@
     #controls {
       margin-bottom: 20px;
     }
+    #globalPreviewButtons {
+      display: none;
+      margin-bottom: 30px;
+    }
   </style>
 </head>
 <body>
@@ -63,8 +74,11 @@
       <option>Germany</option>
       <option>France</option>
     </select>
-    <button onclick="previewEntireDocument('info')">👁️ Preview Full Information Document</button>
-    <button onclick="previewEntireDocument('talking')">👁️ Preview Full Talking Points</button>
+  </div>
+
+  <div id="globalPreviewButtons">
+    <button onclick="previewEntireDocument('info')">Preview Info Doc</button>
+    <button onclick="previewEntireDocument('talking')">Preview TPs</button>
   </div>
 
   <div id="editorContainer"></div>
@@ -94,12 +108,18 @@
 
     const countrySelect = document.getElementById("countrySelect");
     const editorContainer = document.getElementById("editorContainer");
+    const globalPreviewButtons = document.getElementById("globalPreviewButtons");
 
     countrySelect.addEventListener("change", async () => {
       editorContainer.innerHTML = "";
 
       const country = countrySelect.value;
-      if (!country) return;
+      if (!country) {
+        globalPreviewButtons.style.display = "none";
+        return;
+      } else {
+        globalPreviewButtons.style.display = "block";
+      }
 
       const promises = sections.map(async (sectionKey) => {
         const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
@@ -110,19 +130,19 @@
         wrapper.className = "section";
 
         wrapper.innerHTML = `
-          <div class="section-header" onclick="this.classList.toggle('open'); const content = this.nextElementSibling; content.style.display = content.style.display === 'block' ? 'none' : 'block';">
+          <div class="section-header" onclick="const content = this.nextElementSibling; content.style.display = content.style.display === 'block' ? 'none' : 'block';">
             ${sectionKey}
           </div>
           <div class="section-content">
             <div class="ckeditor-label">Information Document:</div>
             <textarea id="${infoId}"></textarea>
-            <button onclick="saveSingleField('${sectionKey}', 'info')">💾 Save</button>
-            <button onclick="previewSingleField('${sectionKey}', 'info')">👁️ Preview</button>
+            <button onclick="saveSingleField('${sectionKey}', 'info')">Save</button>
+            <button onclick="previewSingleField('${sectionKey}', 'info')">Preview</button>
 
             <div class="ckeditor-label" style="margin-top:20px;">Talking Points:</div>
             <textarea id="${talkingId}"></textarea>
-            <button onclick="saveSingleField('${sectionKey}', 'talking')">💾 Save TPs</button>
-            <button onclick="previewSingleField('${sectionKey}', 'talking')">👁️ Preview TPs</button>
+            <button onclick="saveSingleField('${sectionKey}', 'talking')">Save TPs</button>
+            <button onclick="previewSingleField('${sectionKey}', 'talking')">Preview TPs</button>
             <br><br>
             <span id="${safeKey}_status" style="font-weight: bold;"></span>
           </div>
