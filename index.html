@@ -23,9 +23,19 @@
     .section {
       border: 1px solid #ccc;
       border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
       background: #fff;
+    }
+    .section-header {
+      background: #eee;
+      padding: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      border-bottom: 1px solid #ccc;
+    }
+    .section-content {
+      display: none;
+      padding: 20px;
     }
     .ckeditor-label {
       margin-top: 10px;
@@ -47,6 +57,9 @@
     <option>Germany</option>
     <option>France</option>
   </select>
+
+  <button onclick="previewEntireDocument('info')">👁️ Preview Full Information Document</button>
+  <button onclick="previewEntireDocument('talking')">👁️ Preview Full Talking Points</button>
 
   <div id="editorContainer"></div>
 
@@ -85,37 +98,59 @@
       for (const sectionKey of sections) {
         const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
         const infoId = `${safeKey}_info`;
-        const discussionId = `${safeKey}_discussion`;
+        const talkingId = `${safeKey}_talking`;
 
-        const div = document.createElement("div");
-        div.className = "section";
-        div.innerHTML = `
-          <h2>${sectionKey}</h2>
-          <div class="ckeditor-label">Information Document:</div>
-          <textarea id="${infoId}"></textarea>
-          <button onclick="saveSingleField('${sectionKey}', 'info')">💾 Save Info</button>
-          <button onclick="previewSingleField('${sectionKey}', 'info')">👁️ Preview Info</button>
-          <br><br>
-          <div class="ckeditor-label">Discussion Points:</div>
-          <textarea id="${discussionId}"></textarea>
-          <button onclick="saveSingleField('${sectionKey}', 'discussion')">💾 Save Discussion</button>
-          <button onclick="previewSingleField('${sectionKey}', 'discussion')">👁️ Preview Discussion</button>
-          <br><br>
-          <span id="${safeKey}_status" style="font-weight: bold;"></span>
+        const wrapper = document.createElement("div");
+        wrapper.className = "section";
+
+        wrapper.innerHTML = `
+          <div class="section-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none';">
+            ${sectionKey}
+          </div>
+          <div class="section-content">
+            <div class="ckeditor-label">Information Document:</div>
+            <textarea id="${infoId}"></textarea>
+            <button onclick="saveSingleField('${sectionKey}', 'info')">💾 Save</button>
+            <button onclick="previewSingleField('${sectionKey}', 'info')">👁️ Preview</button>
+
+            <div class="ckeditor-label" style="margin-top:20px;">Talking Points:</div>
+            <textarea id="${talkingId}"></textarea>
+            <button onclick="saveSingleField('${sectionKey}', 'talking')">💾 Save TPs</button>
+            <button onclick="previewSingleField('${sectionKey}', 'talking')">👁️ Preview TPs</button>
+            <br><br>
+            <span id="${safeKey}_status" style="font-weight: bold;"></span>
+          </div>
         `;
-        editorContainer.appendChild(div);
 
-        // Initialize editors
-        editorInstances[infoId] = CKEDITOR.replace(infoId, { height: 200 });
-        editorInstances[discussionId] = CKEDITOR.replace(discussionId, { height: 200 });
+        editorContainer.appendChild(wrapper);
 
-        // Load saved data
-        const infoRef = doc(db, "ckeditor-content", `${country}_${safeKey}_info`);
-        const discussionRef = doc(db, "ckeditor-content", `${country}_${safeKey}_discussion`);
+        editorInstances[infoId] = CKEDITOR.replace(infoId, {
+          height: 200,
+          toolbar: [
+            { name: 'styles', items: ['Format', 'FontSize'] },
+            { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+            { name: 'paragraph', items: ['NumberedList', 'BulletedList'] },
+            { name: 'insert', items: ['Table', 'Link'] },
+            { name: 'tools', items: ['Maximize'] }
+          ]
+        });
+        editorInstances[talkingId] = CKEDITOR.replace(talkingId, {
+          height: 200,
+          toolbar: [
+            { name: 'styles', items: ['Format', 'FontSize'] },
+            { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+            { name: 'paragraph', items: ['NumberedList', 'BulletedList'] },
+            { name: 'insert', items: ['Table', 'Link'] },
+            { name: 'tools', items: ['Maximize'] }
+          ]
+        });
 
-        const [infoSnap, discussionSnap] = await Promise.all([getDoc(infoRef), getDoc(discussionRef)]);
+        const [infoSnap, talkingSnap] = await Promise.all([
+          getDoc(doc(db, "ckeditor-content", `${country}_${safeKey}_info`)),
+          getDoc(doc(db, "ckeditor-content", `${country}_${safeKey}_talking`))
+        ]);
         if (infoSnap.exists()) editorInstances[infoId].setData(infoSnap.data().content);
-        if (discussionSnap.exists()) editorInstances[discussionId].setData(discussionSnap.data().content);
+        if (talkingSnap.exists()) editorInstances[talkingId].setData(talkingSnap.data().content);
       }
     });
 
@@ -123,21 +158,17 @@
 
     window.saveSingleField = async (sectionKey, type) => {
       const country = getCountry();
-      if (!country) {
-        alert("Please select a country.");
-        return;
-      }
+      if (!country) return alert("Select a country");
 
       const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
       const fieldId = `${safeKey}_${type}`;
       const content = editorInstances[fieldId].getData();
-      const ref = doc(db, "ckeditor-content", `${country}_${safeKey}_${type}`);
       const status = document.getElementById(`${safeKey}_status`);
 
       status.innerText = "Saving...";
       try {
-        await setDoc(ref, { content });
-        status.innerText = `✅ ${type === 'info' ? 'Information' : 'Discussion'} Saved`;
+        await setDoc(doc(db, "ckeditor-content", `${country}_${safeKey}_${type}`), { content });
+        status.innerText = `✅ ${type === 'info' ? 'Information' : 'TPs'} Saved`;
         status.style.color = "green";
       } catch (err) {
         status.innerText = `❌ Error: ${err.message}`;
@@ -151,30 +182,47 @@
       const fieldId = `${safeKey}_${type}`;
       const content = editorInstances[fieldId].getData().trim();
 
-      if (!content) {
-        alert("This field is empty.");
-        return;
-      }
+      if (!content) return alert("This field is empty");
 
-      const title = type === "info" ? "Information Document" : "Discussion Points";
-
-      const html = `<html><head><title>${title} - ${sectionKey}</title>
-        <style>
-          body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; }
-          h1, h2 { text-align: center; }
-          h3 { margin-top: 20px; }
-        </style>
+      const title = type === "info" ? "Information Document" : "Talking Points";
+      const html = `<html><head><title>${title}</title>
+        <style>body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; } h1, h2 { text-align: center; }</style>
       </head><body>
-      <h1>${country}</h1>
-      <h2>${sectionKey}</h2>
-      <h3>${title}</h3>
-      ${content}
+        <h1>${country}</h1>
+        <h2>${sectionKey}</h2>
+        <h3>${title}</h3>
+        ${content}
       </body></html>`;
 
-      const previewWindow = window.open("", "_blank");
-      previewWindow.document.open();
-      previewWindow.document.write(html);
-      previewWindow.document.close();
+      const win = window.open();
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+    };
+
+    window.previewEntireDocument = (type) => {
+      const country = getCountry();
+      if (!country) return alert("Select a country");
+
+      let fullContent = `<html><head><title>${type === 'info' ? 'Information Document' : 'Talking Points'}</title>
+        <style>body { font-family: Arial; padding: 40px; line-height: 1.6; } h1, h2 { text-align: center; }</style>
+        </head><body><h1>${country}</h1><h2>${type === 'info' ? 'Information Document' : 'Talking Points'}</h2>`;
+
+      for (const sectionKey of sections) {
+        const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
+        const fieldId = `${safeKey}_${type}`;
+        const content = editorInstances[fieldId]?.getData().trim();
+        if (content) {
+          fullContent += `<h3>${sectionKey}</h3>` + content;
+        }
+      }
+
+      fullContent += '</body></html>';
+
+      const win = window.open();
+      win.document.open();
+      win.document.write(fullContent);
+      win.document.close();
     };
   </script>
 </body>
