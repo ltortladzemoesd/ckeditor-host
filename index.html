@@ -182,21 +182,37 @@
     }
 
     function exportAll() {
-      const container = document.createElement("div");
+  const country = getCountry();
+  if (!country) {
+    alert("Please select a country first.");
+    return;
+  }
 
-      sections.forEach((sectionKey) => {
-        const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
-        const info = editorInstances[`${safeKey}_info`].getData();
-        const discussion = editorInstances[`${safeKey}_discussion`].getData();
+  const container = document.getElementById("pdfContainer");
+  container.innerHTML = ""; // clear previous
 
-        container.innerHTML += `<h2>${sectionKey}</h2>`;
-        container.innerHTML += `<h3>Information Document</h3>${info}`;
-        container.innerHTML += `<h3>Discussion Points</h3>${discussion}`;
-        container.innerHTML += `<hr>`;
-      });
+  sections.forEach((sectionKey) => {
+    const safeKey = sectionKey.toLowerCase().replace(/\s/g, "_");
+    const info = editorInstances[`${safeKey}_info`].getData();
+    const discussion = editorInstances[`${safeKey}_discussion`].getData();
 
-      html2pdf().from(container).save(getCountry() + "-report.pdf");
-    }
+    container.innerHTML += `<h2>${sectionKey}</h2>`;
+    container.innerHTML += `<h3>Information Document</h3>${info}`;
+    container.innerHTML += `<h3>Discussion Points</h3>${discussion}`;
+    container.innerHTML += `<hr>`;
+  });
+
+  // Make container temporarily visible to html2pdf
+  container.style.display = "block";
+  html2pdf()
+    .from(container)
+    .set({ margin: 10, filename: `${country}-report.pdf` })
+    .save()
+    .then(() => {
+      container.style.display = "none"; // hide again
+    });
+}
+
   </script>
 </body>
 </html>
