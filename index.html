@@ -2,16 +2,16 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>CKEditor Firebase Version</title>
+  <title>Information Document</title>
 
-  <!-- Original version as requested -->
+  <!-- CKEditor 4.22.1 (original version) -->
   <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
 
-  <!-- Firebase + Firestore -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
 
-  <!-- PDF Export -->
+  <!-- Optional: PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -20,6 +20,12 @@
       padding: 10px;
       font-family: Arial;
       background: #f9f9f9;
+    }
+    label {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      display: block;
     }
     textarea {
       width: 100%;
@@ -35,7 +41,7 @@
       font-weight: bold;
     }
 
-    /* Hide red version warning */
+    /* Hide version warning */
     .cke_notification_warning {
       display: none !important;
     }
@@ -43,8 +49,7 @@
 </head>
 
 <body>
-  <h2>Editor with Firebase Save</h2>
-
+  <label for="editor1">Information Document</label>
   <textarea id="editor1">Paste your content here...</textarea>
   <br />
   <button onclick="saveContent()">Save</button>
@@ -52,7 +57,6 @@
   <div id="status"></div>
 
   <script>
-    // ✅ Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
       authDomain: "ckeditor-content-saver.firebaseapp.com",
@@ -65,7 +69,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // ✅ Exact toolbar you had before
     CKEDITOR.replace('editor1', {
       height: 300,
       toolbar: [
@@ -79,19 +82,18 @@
       ]
     });
 
-    // ✅ Load content from Firestore on load
-    db.collection("ckeditor-entries").doc("demo").get().then((doc) => {
+    // Load existing content
+    db.collection("ckeditor-entries").doc("information-document").get().then((doc) => {
       if (doc.exists) {
         CKEDITOR.instances.editor1.setData(doc.data().html);
       }
     });
 
-    // ✅ Save to Firebase
     function saveContent() {
       const html = CKEDITOR.instances.editor1.getData();
-      db.collection("ckeditor-entries").doc("demo").set({ html })
+      db.collection("ckeditor-entries").doc("information-document").set({ html })
         .then(() => {
-          document.getElementById("status").innerText = "✅ Content saved to Firebase!";
+          document.getElementById("status").innerText = "✅ Successfully Saved";
           document.getElementById("status").style.color = "green";
         })
         .catch((err) => {
@@ -100,12 +102,11 @@
         });
     }
 
-    // ✅ Export to PDF
     function exportPDF() {
       const html = CKEDITOR.instances.editor1.getData();
       const temp = document.createElement("div");
       temp.innerHTML = html;
-      html2pdf().from(temp).save("ckeditor-content.pdf");
+      html2pdf().from(temp).save("information-document.pdf");
     }
   </script>
 </body>
