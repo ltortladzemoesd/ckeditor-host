@@ -145,42 +145,63 @@
   const cleanSection = decodeURIComponent(section).replace(/_/g, " ");
 
   // HTML preview layout
+  function previewContent() {
+  const html = CKEDITOR.instances.editor.getData().trim();
+  if (!html) return alert("This field is empty");
+
+  const cleanCountry = country.replace(/_/g, " ");
+  const cleanSection = section.replace(/_/g, " ");
+  const documentType = "Information Document"; // Or "Talking Points"
+
   const previewHtml = `
     <!DOCTYPE html>
     <html>
-      <head>
-        <title>Preview</title>
-        <style>
-          body {
-            font-family: Arial;
-            padding: 40px;
-            line-height: 1.6;
-            background: #fff;
-            color: #000;
-          }
-          .country-header {
-            font-size: 20px;
-            font-weight: bold;
-            background-color: #e5ecf3;
-            padding: 10px;
-            text-align: center;
-            margin-bottom: 10px;
-          }
-          .section-header {
-            font-size: 16px;
-            font-weight: bold;
-            background-color: #f0f4f8;
-            padding: 10px 20px;
-            margin-top: 10px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="country-header">${cleanCountry}</div>
-        <div class="country-header">${cleanSection}</div>
-        <div class="section-header">Information Document</div>
-        ${html}
-      </body>
+    <head>
+      <title>Preview</title>
+      <style>
+        body {
+          font-family: Arial;
+          padding: 40px;
+          background: #fff;
+          color: #000;
+          line-height: 1.6;
+        }
+        .header-box {
+          background-color: #f0f4f8;
+          padding: 20px;
+          border-radius: 12px;
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .country-name {
+          font-size: 18px;
+          font-weight: bold;
+          margin: 0;
+        }
+        .section-name {
+          font-size: 16px;
+          margin-top: 5px;
+          margin-bottom: 0;
+        }
+        .doc-type-box {
+          background-color: #f0f4f8;
+          padding: 12px 20px;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: bold;
+          margin-bottom: 20px;
+          display: inline-block;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header-box">
+        <p class="country-name">${cleanCountry}</p>
+        <p class="section-name">${cleanSection}</p>
+      </div>
+      <div class="doc-type-box">${documentType}</div>
+      ${html}
+    </body>
     </html>
   `;
 
