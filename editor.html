@@ -7,20 +7,27 @@
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
   <style>
-    body {
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
       font-family: Arial;
-      margin: 2px;
       background: #fefefe;
       color: black;
+      overflow: hidden;
     }
+
     h1 {
       font-size: 16px;
       margin-bottom: 20px;
+      margin-left: 2px;
     }
+
     #status {
       margin-top: 10px;
       font-weight: bold;
     }
+
     .btn {
       margin-top: 10px;
       padding: 10px 30px;
@@ -32,16 +39,32 @@
       cursor: pointer;
       margin-right: 10px;
     }
+
     .btn:hover {
       background-color: #3e5870;
     }
+
     textarea {
       border-radius: 16px !important;
     }
+
     .cke_editor_editor {
       border-radius: 16px !important;
-      overflow: hidden;
+      overflow: visible;
     }
+
+    .cke_maximized {
+      z-index: 99999 !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      margin: 0 !important;
+      border: none !important;
+      background: white !important;
+    }
+
     .cke_notification_warning {
       display: none !important;
     }
@@ -71,7 +94,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const country = urlParams.get("country") || "UnknownCountry";
     const section = urlParams.get("section") || "UnknownSection";
-    const docId = `${country}_${section}`;
+    const docId = `${country}_${section}_info`;
 
     CKEDITOR.replace('editor', {
       height: 400,
@@ -110,7 +133,27 @@
     function previewContent() {
       const html = CKEDITOR.instances.editor.getData().trim();
       if (!html) return alert("This field is empty");
-      const previewHtml = `<!DOCTYPE html><html><head><title>Information Document</title><style>body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; } h1, h2 { text-align: center; }</style></head><body><h1>${country}</h1><h2>${section}</h2><h3>Information Document</h3>${html}</body></html>`;
+
+      const cleanSection = section.replace(/_/g, ' ');
+      const previewHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${cleanSection}</title>
+          <style>
+            body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; }
+            h1, h2 { text-align: center; }
+          </style>
+        </head>
+        <body>
+          <h1>${country}</h1>
+          <h2>${cleanSection}</h2>
+          <h3>Information Document</h3>
+          ${html}
+        </body>
+        </html>
+      `;
+
       const win = window.open();
       win.document.open();
       win.document.write(previewHtml);
