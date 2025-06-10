@@ -137,34 +137,67 @@
 
     // Preview content
     function previewContent() {
-      const html = CKEDITOR.instances.editor.getData().trim();
-      if (!html) return alert("This field is empty");
+  const html = CKEDITOR.instances.editor.getData().trim();
+  if (!html) return alert("This field is empty");
 
-      const cleanSection = section.replace(/_/g, ' ');
-      const previewHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${cleanSection}</title>
-          <style>
-            body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; }
-            h1, h2, h3 { text-align: center; }
-          </style>
-        </head>
-        <body>
-          <h1>${country}</h1>
-          <h2>${cleanSection}</h2>
-          <h3>Information Document</h3>
-          ${html}
-        </body>
-        </html>
-      `;
+  const cleanCountry = country.replace(/_/g, " ");
+  const cleanSection = section.replace(/_/g, " ");
+  const documentType = "Information Document"; // or "Talking Points"
 
-      const win = window.open();
-      win.document.open();
-      win.document.write(previewHtml);
-      win.document.close();
-    }
+  const previewHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Preview</title>
+      <style>
+        body {
+          font-family: Arial;
+          padding: 40px;
+          background: #fff;
+          color: #000;
+          line-height: 1.6;
+        }
+        .header-box {
+          background-color: #f0f4f8;
+          padding: 20px;
+          border-radius: 12px;
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .country-name {
+          font-size: 18px;
+          font-weight: bold;
+          margin: 0;
+        }
+        .section-name {
+          font-size: 16px;
+          margin-top: 5px;
+          margin-bottom: 0;
+        }
+        .doc-type {
+          font-size: 14px;
+          font-weight: bold;
+          margin-bottom: 20px;
+          text-align: left;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header-box">
+        <p class="country-name">${cleanCountry}</p>
+        <p class="section-name">${cleanSection}</p>
+      </div>
+      <div class="doc-type">${documentType}</div>
+      ${html}
+    </body>
+    </html>
+  `;
+
+  const win = window.open();
+  win.document.open();
+  win.document.write(previewHtml);
+  win.document.close();
+}
   </script>
 </body>
 </html>
