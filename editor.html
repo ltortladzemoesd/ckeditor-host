@@ -142,7 +142,7 @@
 
   const cleanCountry = country.replace(/_/g, " ");
   const cleanSection = section.replace(/_/g, " ");
-  const documentType = "Information Document"; // or "Talking Points"
+  const documentType = "Information Document"; // Or "Talking Points"
 
   const previewHtml = `
     <!DOCTYPE html>
@@ -174,11 +174,14 @@
           margin-top: 5px;
           margin-bottom: 0;
         }
-        .doc-type {
+        .doc-type-box {
+          background-color: #f0f4f8;
+          padding: 12px 20px;
+          border-radius: 12px;
           font-size: 14px;
           font-weight: bold;
           margin-bottom: 20px;
-          text-align: left;
+          display: inline-block;
         }
       </style>
     </head>
@@ -187,7 +190,7 @@
         <p class="country-name">${cleanCountry}</p>
         <p class="section-name">${cleanSection}</p>
       </div>
-      <div class="doc-type">${documentType}</div>
+      <div class="doc-type-box">${documentType}</div>
       ${html}
     </body>
     </html>
