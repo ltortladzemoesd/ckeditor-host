@@ -79,6 +79,7 @@
   <span id="status"></span>
 
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
       authDomain: "ckeditor-content-saver.firebaseapp.com",
@@ -91,11 +92,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Get country & section from URL
     const urlParams = new URLSearchParams(window.location.search);
     const country = urlParams.get("country") || "UnknownCountry";
     const section = urlParams.get("section") || "UnknownSection";
     const docId = `${country}_${section}_info`;
 
+    // Initialize CKEditor
     CKEDITOR.replace('editor', {
       height: 400,
       toolbar: [
@@ -109,12 +112,14 @@
       ]
     });
 
+    // Load content
     db.collection("ckeditor-content").doc(docId).get().then(doc => {
       if (doc.exists) {
         CKEDITOR.instances.editor.setData(doc.data().content || "");
       }
     });
 
+    // Save content
     function saveContent() {
       const html = CKEDITOR.instances.editor.getData();
       const status = document.getElementById("status");
@@ -130,6 +135,7 @@
         });
     }
 
+    // Preview content
     function previewContent() {
       const html = CKEDITOR.instances.editor.getData().trim();
       if (!html) return alert("This field is empty");
@@ -142,7 +148,7 @@
           <title>${cleanSection}</title>
           <style>
             body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; }
-            h1, h2 { text-align: center; }
+            h1, h2, h3 { text-align: center; }
           </style>
         </head>
         <body>
