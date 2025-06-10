@@ -44,7 +44,7 @@
     const country = urlParams.get('country') || 'Unknown';
     const section = urlParams.get('section') || 'General_Info';
 
-    document.getElementById("sectionTitle").innerText = `${country} — ${section.replace(/_/g, ' ')}`;
+    document.getElementById("sectionTitle").innerText = `Information Document`;
 
     const editor = CKEDITOR.replace("editorBox", {
       height: 300,
