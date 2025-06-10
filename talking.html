@@ -21,18 +21,26 @@
       margin-top: 10px;
       font-weight: bold;
     }
-    button {
+    .btn {
       margin-top: 10px;
-      padding: 8px 16px;
+      padding: 10px 20px;
       font-size: 16px;
-      border-radius: 10px;
+      border-radius: 12px;
       background-color: #2c3e50;
       color: white;
       border: none;
       cursor: pointer;
+      margin-right: 10px;
     }
-    button:hover {
+    .btn:hover {
       background-color: #3e5870;
+    }
+    textarea {
+      border-radius: 16px !important;
+    }
+    .cke_editor_editor {
+      border-radius: 16px !important;
+      overflow: hidden;
     }
     .cke_notification_warning {
       display: none !important;
@@ -43,11 +51,11 @@
   <h1>Talking Points</h1>
   <textarea id="editor"></textarea>
   <br>
-  <button onclick="saveContent()">Save</button>
+  <button class="btn" onclick="saveContent()">Save</button>
+  <button class="btn" onclick="previewContent()">Preview</button>
   <span id="status"></span>
 
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
       authDomain: "ckeditor-content-saver.firebaseapp.com",
@@ -60,15 +68,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Extract query params: country and section
     const urlParams = new URLSearchParams(window.location.search);
     const country = urlParams.get("country") || "UnknownCountry";
     const section = urlParams.get("section") || "UnknownSection";
     const docId = `${country}_${section}_talking`;
 
-    // Initialize CKEditor
     CKEDITOR.replace('editor', {
-      height: 300,
+      height: 400,
       toolbar: [
         { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
         { name: 'colors', items: ['TextColor', 'BGColor'] },
@@ -80,14 +86,12 @@
       ]
     });
 
-    // Load existing content
     db.collection("ckeditor-content").doc(docId).get().then(doc => {
       if (doc.exists) {
         CKEDITOR.instances.editor.setData(doc.data().content || "");
       }
     });
 
-    // Save content
     function saveContent() {
       const html = CKEDITOR.instances.editor.getData();
       const status = document.getElementById("status");
@@ -101,6 +105,16 @@
           status.innerText = "❌ Error: " + err.message;
           status.style.color = "red";
         });
+    }
+
+    function previewContent() {
+      const html = CKEDITOR.instances.editor.getData().trim();
+      if (!html) return alert("This field is empty");
+      const previewHtml = `<!DOCTYPE html><html><head><title>Talking Points</title><style>body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; } h1, h2 { text-align: center; }</style></head><body><h1>${country}</h1><h2>${section}</h2><h3>Talking Points</h3>${html}</body></html>`;
+      const win = window.open();
+      win.document.open();
+      win.document.write(previewHtml);
+      win.document.close();
     }
   </script>
 </body>
