@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>CKEditor Country Section</title>
+  <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    .cke_notification_warning {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <h2 id="sectionTitle">Loading...</h2>
+  <textarea id="editorBox"></textarea>
+  <br>
+  <button onclick="saveContent()">Save</button>
+  <span id="status" style="margin-left:20px;font-weight:bold;"></span>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
+      authDomain: "ckeditor-content-saver.firebaseapp.com",
+      projectId: "ckeditor-content-saver",
+      storageBucket: "ckeditor-content-saver.appspot.com",
+      messagingSenderId: "429325764295",
+      appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const country = urlParams.get('country') || 'Unknown';
+    const section = urlParams.get('section') || 'General_Info';
+
+    document.getElementById("sectionTitle").innerText = `Talking Points`;
+
+    const editor = CKEDITOR.replace("editorBox", {
+      height: 300,
+      toolbar: [
+        { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+        { name: 'colors', items: ['TextColor', 'BGColor'] },
+        { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+        { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
+        { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
+        { name: 'insert', items: ['Table', 'Link'] },
+        { name: 'tools', items: ['Maximize'] }
+      ]
+    });
+
+    const docId = `${country}_${section}`;
+    const status = document.getElementById("status");
+
+    firebase.firestore().doc("ckeditor-content/" + docId).get().then((doc) => {
+      if (doc.exists) {
+        editor.setData(doc.data().content);
+      }
+    });
+
+    function saveContent() {
+      const content = editor.getData();
+      status.innerText = "Saving...";
+      firebase.firestore().doc("ckeditor-content/" + docId).set({ content })
+        .then(() => {
+          status.innerText = "✅ Successfully Saved";
+          status.style.color = "green";
+        })
+        .catch((err) => {
+          status.innerText = "❌ " + err.message;
+          status.style.color = "red";
+        });
+    }
+  </script>
+</body>
+</html>
