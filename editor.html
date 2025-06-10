@@ -2,19 +2,45 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>CKEditor Country Section</title>
+  <title>Information Document</title>
   <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: Arial;
-      padding: 20px;
+      margin: 40px;
       background: #f9f9f9;
+      color: black;
     }
-    h2 {
-      color: #2c3e50;
+    h1 {
+      font-size: 24px;
       margin-bottom: 20px;
+    }
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .btn {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 12px;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .btn:hover {
+      background-color: #3e5870;
+    }
+    textarea {
+      border-radius: 16px !important;
+    }
+    .cke_editor_editor {
+      border-radius: 16px !important;
+      overflow: hidden;
     }
     .cke_notification_warning {
       display: none !important;
@@ -22,11 +48,12 @@
   </style>
 </head>
 <body>
-  <h2 id="sectionTitle">Loading...</h2>
-  <textarea id="editorBox"></textarea>
+  <h1>Information Document</h1>
+  <textarea id="editor"></textarea>
   <br>
-  <button onclick="saveContent()">Save</button>
-  <span id="status" style="margin-left:20px;font-weight:bold;"></span>
+  <button class="btn" onclick="saveContent()">Save</button>
+  <button class="btn" onclick="previewContent()">Preview</button>
+  <span id="status"></span>
 
   <script>
     const firebaseConfig = {
@@ -37,17 +64,17 @@
       messagingSenderId: "429325764295",
       appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     const urlParams = new URLSearchParams(window.location.search);
-    const country = urlParams.get('country') || 'Unknown';
-    const section = urlParams.get('section') || 'General_Info';
+    const country = urlParams.get("country") || "UnknownCountry";
+    const section = urlParams.get("section") || "UnknownSection";
+    const docId = `${country}_${section}`;
 
-    document.getElementById("sectionTitle").innerText = `Information Document`;
-
-    const editor = CKEDITOR.replace("editorBox", {
-      height: 300,
+    CKEDITOR.replace('editor', {
+      height: 400,
       toolbar: [
         { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
         { name: 'colors', items: ['TextColor', 'BGColor'] },
@@ -59,27 +86,35 @@
       ]
     });
 
-    const docId = `${country}_${section}`;
-    const status = document.getElementById("status");
-
-    firebase.firestore().doc("ckeditor-content/" + docId).get().then((doc) => {
+    db.collection("ckeditor-content").doc(docId).get().then(doc => {
       if (doc.exists) {
-        editor.setData(doc.data().content);
+        CKEDITOR.instances.editor.setData(doc.data().content || "");
       }
     });
 
     function saveContent() {
-      const content = editor.getData();
+      const html = CKEDITOR.instances.editor.getData();
+      const status = document.getElementById("status");
       status.innerText = "Saving...";
-      firebase.firestore().doc("ckeditor-content/" + docId).set({ content })
+      db.collection("ckeditor-content").doc(docId).set({ content: html })
         .then(() => {
           status.innerText = "✅ Successfully Saved";
           status.style.color = "green";
         })
-        .catch((err) => {
-          status.innerText = "❌ " + err.message;
+        .catch(err => {
+          status.innerText = "❌ Error: " + err.message;
           status.style.color = "red";
         });
+    }
+
+    function previewContent() {
+      const html = CKEDITOR.instances.editor.getData().trim();
+      if (!html) return alert("This field is empty");
+      const previewHtml = `<!DOCTYPE html><html><head><title>Information Document</title><style>body { font-family: Arial; padding: 40px; line-height: 1.6; background: #fff; color: #000; } h1, h2 { text-align: center; }</style></head><body><h1>${country}</h1><h2>${section}</h2><h3>Information Document</h3>${html}</body></html>`;
+      const win = window.open();
+      win.document.open();
+      win.document.write(previewHtml);
+      win.document.close();
     }
   </script>
 </body>
