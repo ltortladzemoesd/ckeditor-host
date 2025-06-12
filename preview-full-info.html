@@ -11,11 +11,13 @@
       line-height: 1.6;
     }
     .header-box {
-      background-color: #f0f4f8;
+      background-color: #f0f4f8 !important;
       padding: 20px;
       border-radius: 12px;
       text-align: center;
       margin-bottom: 30px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .country-name {
       font-size: 18px;
@@ -28,13 +30,15 @@
       margin-bottom: 0;
     }
     .doc-type-box {
-      background-color: #f0f4f8;
+      background-color: #f0f4f8 !important;
       padding: 12px 20px;
       border-radius: 12px;
       font-size: 14px;
       font-weight: normal;
       margin-bottom: 20px;
       display: inline-block;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .export-btn {
       position: absolute;
@@ -56,6 +60,11 @@
       height: 16px;
       fill: white;
     }
+    .date-line {
+      font-size: 12px;
+      color: #333;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -64,10 +73,24 @@
     Save PDF
   </button>
   <div class="header-box">
-    <p class="country-name">[COUNTRY NAME]</p>
-    <p class="section-name">[SECTION NAME]</p>
+    <p class="country-name" id="countryHeader">Loading...</p>
+    <p class="section-name">Information Document</p>
+    <p class="date-line" id="dateLine"></p>
   </div>
   <div class="doc-type-box">Information Document</div>
-  [EDITOR CONTENT HERE]
+  <div id="content">[EDITOR CONTENT HERE]</div>
+
+  <script>
+    // Insert today's date in format "DD Month YYYY"
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const today = new Date();
+    const formattedDate = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+    document.getElementById("dateLine").innerText = formattedDate;
+
+    // Example of dynamic header insertion (simulate working header)
+    const urlParams = new URLSearchParams(window.location.search);
+    const country = urlParams.get("country") || "[COUNTRY NAME]";
+    document.getElementById("countryHeader").innerText = country.replace(/_/g, " ");
+  </script>
 </body>
 </html>
