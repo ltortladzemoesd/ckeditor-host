@@ -2,7 +2,9 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Full Preview – Information Document</title>
+  <title>Full Information Document</title>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: Arial;
@@ -19,40 +21,50 @@
       margin-bottom: 30px;
     }
     .country-name {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
       margin: 0;
     }
-    .section-header {
-      font-size: 18px;
-      font-weight: bold;
+    .doc-type-box {
       background-color: #f0f4f8;
       padding: 12px 20px;
       border-radius: 12px;
-      margin-top: 40px;
+      font-size: 14px;
+      font-weight: bold;
+      margin-top: 10px;
+      display: inline-block;
+    }
+    #exportBtn {
+      margin-top: 20px;
+      padding: 10px 30px;
+      font-size: 14px;
+      border-radius: 20px;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="header-box">
     <p class="country-name" id="countryHeader">Loading...</p>
+    <p class="doc-type-box">Information Document</p>
   </div>
   <div id="content"></div>
+  <button id="exportBtn" onclick="exportAsPDF()">Export PDF</button>
 
-  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
       authDomain: "ckeditor-content-saver.firebaseapp.com",
-      projectId: "ckeditor-content-saver",
+      projectId: "ckeditor-content-saver"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const country = new URLSearchParams(location.search).get("country") || "UnknownCountry";
-    document.getElementById("countryHeader").innerText = country.replace(/_/g, " ");
-
+    const urlParams = new URLSearchParams(window.location.search);
+    const country = urlParams.get("country") || "UnknownCountry";
     const sections = [
       "Diplomatic_Relations",
       "Bilateral_Trade_and_Economic_Relations",
@@ -65,21 +77,31 @@
       "Information_Technology"
     ];
 
-    const contentDiv = document.getElementById("content");
+    document.getElementById("countryHeader").innerText = country.replace(/_/g, " ");
 
-    sections.forEach(async (section) => {
-      const docId = `${country}_${section}_info`;
-      const doc = await db.collection("ckeditor-content").doc(docId).get();
-      if (doc.exists && doc.data().content) {
-        const header = document.createElement("div");
-        header.className = "section-header";
-        header.innerText = section.replace(/_/g, " ");
-        const sectionHTML = document.createElement("div");
-        sectionHTML.innerHTML = doc.data().content;
-        contentDiv.appendChild(header);
-        contentDiv.appendChild(sectionHTML);
-      }
+    const container = document.getElementById("content");
+
+    Promise.all(
+      sections.map(section => {
+        const docId = `${country}_${section}_info`;
+        return db.collection("ckeditor-content").doc(docId).get().then(doc => {
+          return { section, html: doc.exists ? doc.data().content || "" : "" };
+        });
+      })
+    ).then(results => {
+      results.forEach(({ section, html }) => {
+        if (!html) return;
+        const clean = section.replace(/_/g, " ");
+        const div = document.createElement("div");
+        div.innerHTML = `<h2>${clean}</h2>${html}`;
+        container.appendChild(div);
+      });
     });
+
+    function exportAsPDF() {
+      const original = document.body.innerHTML;
+      window.print();
+    }
   </script>
 </body>
 </html>
