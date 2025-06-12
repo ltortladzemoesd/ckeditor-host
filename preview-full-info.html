@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Full Preview – Information Document</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 40px;
+      background: #fff;
+      color: #000;
+      line-height: 1.6;
+    }
+    .header-box {
+      background-color: #f0f4f8;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .country-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 0;
+    }
+    .section-header {
+      font-size: 18px;
+      font-weight: bold;
+      background-color: #f0f4f8;
+      padding: 12px 20px;
+      border-radius: 12px;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-box">
+    <p class="country-name" id="countryHeader">Loading...</p>
+  </div>
+  <div id="content"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
+      authDomain: "ckeditor-content-saver.firebaseapp.com",
+      projectId: "ckeditor-content-saver",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const country = new URLSearchParams(location.search).get("country") || "UnknownCountry";
+    document.getElementById("countryHeader").innerText = country.replace(/_/g, " ");
+
+    const sections = [
+      "Diplomatic_Relations",
+      "Bilateral_Trade_and_Economic_Relations",
+      "Trade_Policy",
+      "Tourism",
+      "Investment",
+      "Transport",
+      "Energy",
+      "Communications,_Innovation_and_Post",
+      "Information_Technology"
+    ];
+
+    const contentDiv = document.getElementById("content");
+
+    sections.forEach(async (section) => {
+      const docId = `${country}_${section}_info`;
+      const doc = await db.collection("ckeditor-content").doc(docId).get();
+      if (doc.exists && doc.data().content) {
+        const header = document.createElement("div");
+        header.className = "section-header";
+        header.innerText = section.replace(/_/g, " ");
+        const sectionHTML = document.createElement("div");
+        sectionHTML.innerHTML = doc.data().content;
+        contentDiv.appendChild(header);
+        contentDiv.appendChild(sectionHTML);
+      }
+    });
+  </script>
+</body>
+</html>
