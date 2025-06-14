@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Preview Buttons</title>
+  <style>
+    body {
+      font-family: Arial;
+      background-color: #f9f9f9;
+      padding: 20px;
+      text-align: center;
+    }
+    select, button {
+      font-size: 14px;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <select id="countrySelect">
+    <option value="">Choose a country</option>
+    <option value="Germany">Germany</option>
+    <option value="Hungary">Hungary</option>
+    <option value="Austria">Austria</option>
+    <!-- Add more countries as needed -->
+  </select>
+  <br>
+
+  <button onclick="openPreview('info')">Preview Info</button>
+  <button onclick="openPreview('tp')">Preview Talking Points</button>
+
+  <script>
+    function openPreview(type) {
+      const country = document.getElementById("countrySelect").value;
+      if (!country) {
+        alert("Please select a country.");
+        return;
+      }
+      const encoded = encodeURIComponent(country);
+      let url = "";
+      if (type === "info") {
+        url = `https://ltortladzemoesd.github.io/ckeditor-host/preview-full-info.html?country=${encoded}`;
+      } else {
+        url = `https://ltortladzemoesd.github.io/ckeditor-host/preview-full-tp.html?country=${encoded}`;
+      }
+      window.open(url, "_blank");
+    }
+  </script>
+
+</body>
+</html>
