@@ -1,45 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Preview Buttons</title>
   <style>
     body {
-      background: transparent;
       font-family: Arial, sans-serif;
+      background-color: transparent;
+      padding: 20px;
+      text-align: center;
     }
+
     .btn {
-      margin: 10px;
+      display: inline-block;
       padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 30px;
-      background-color: #f4f4f4;
-      color: #2c3e50;
+      font-size: 14px;
+      font-weight: 600;
       border: none;
+      border-radius: 25px;
+      margin: 10px;
       cursor: pointer;
-      font-weight: bold;
+      background-color: #2c3e50;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #34495e;
     }
   </style>
 </head>
 <body>
-  <button class="btn" onclick="openPreview('info')">Preview INFO</button>
-  <button class="btn" onclick="openPreview('tp')">Preview TPs</button>
+  <button class="btn" onclick="previewInfo()">Preview Full Information Document</button>
+  <button class="btn" onclick="previewTPs()">Preview Full Talking Points</button>
 
   <script>
-    function getCountry() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("country") || "";
+    let country = "";
+
+    // Fallback: try to get country from URL if passed
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("country")) {
+      country = decodeURIComponent(urlParams.get("country"));
+      console.log("Country from URL:", country);
     }
 
-    function openPreview(type) {
-      const country = getCountry();
-      if (!country) return alert("Country not set.");
+    // Listen to messages from Wix
+    window.addEventListener("message", (event) => {
+      if (event.data && event.data.country) {
+        country = event.data.country;
+        console.log("Received country via postMessage:", country);
+      }
+    });
 
-      const url = type === 'info'
-        ? `https://ltortladzemoesd.github.io/ckeditor-host/preview-full-info.html?country=${encodeURIComponent(country)}`
-        : `https://ltortladzemoesd.github.io/ckeditor-host/preview-full-tp.html?country=${encodeURIComponent(country)}`;
+    function previewInfo() {
+      if (!country) return alert("Country not set");
+      const encoded = encodeURIComponent(country);
+      window.open(`https://ltortladzemoesd.github.io/ckeditor-host/preview-full-info.html?country=${encoded}`, "_blank");
+    }
 
-      window.open(url, "_blank");
+    function previewTPs() {
+      if (!country) return alert("Country not set");
+      const encoded = encodeURIComponent(country);
+      window.open(`https://ltortladzemoesd.github.io/ckeditor-host/preview-full-tp.html?country=${encoded}`, "_blank");
     }
   </script>
 </body>
