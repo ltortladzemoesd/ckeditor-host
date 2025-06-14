@@ -1,78 +1,100 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Select Country & Edit Sections</title>
+  <meta charset="UTF-8">
+  <title>Country Selection & Preview Buttons</title>
   <style>
     body {
       font-family: Arial;
-      background-color: #f9f9f9;
-      padding: 20px;
-    }
-    h2 {
-      font-size: 20px;
-      margin-bottom: 10px;
+      padding: 40px;
+      background: #f9f9f9;
     }
     select, button {
-      padding: 10px;
-      font-size: 14px;
-      border-radius: 6px;
-      margin: 5px 0;
-    }
-    .button-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    iframe {
-      width: 100%;
-      height: 600px;
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-right: 20px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      border-radius: 10px;
-      margin-top: 20px;
+    }
+    button {
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-
-  <h2>Select Country</h2>
+  <h2>Select Country and Preview</h2>
   <select id="countryDropdown">
-    <option value="">-- Choose a country --</option>
-    <option value="Hungary">Hungary</option>
+    <option value="">-- Select a country --</option>
+    <option value="Georgia">Georgia</option>
     <option value="Germany">Germany</option>
     <option value="France">France</option>
-    <!-- Add more countries here -->
+    <!-- Add more countries as needed -->
   </select>
 
-  <h2>Select Section to Edit</h2>
-  <div class="button-row">
-    <button onclick="loadEditor('Diplomatic_Relations')">Diplomatic Relations</button>
-    <button onclick="loadEditor('Bilateral_Trade_and_Economic_Relations')">Bilateral Trade</button>
-    <button onclick="loadEditor('Trade_Policy')">Trade Policy</button>
-    <button onclick="loadEditor('Tourism')">Tourism</button>
-    <button onclick="loadEditor('Investment')">Investment</button>
-    <button onclick="loadEditor('Transport')">Transport</button>
-    <button onclick="loadEditor('Energy')">Energy</button>
-    <button onclick="loadEditor('Communications_Innovation_and_Post')">Communications</button>
-    <button onclick="loadEditor('Information_Technology')">IT</button>
-  </div>
-
-  <iframe id="editorFrame" src=""></iframe>
+  <button id="previewInfoBtn">Preview Info</button>
+  <button id="previewTpBtn">Preview TPs</button>
 
   <script>
-    function loadEditor(section) {
-      const country = document.getElementById("countryDropdown").value;
-      if (!country) {
-        alert("Please select a country first.");
-        return;
-      }
-      const encodedCountry = encodeURIComponent(country);
-      const encodedSection = encodeURIComponent(section);
-      const editorUrl = `editor.html?country=${encodedCountry}&section=${encodedSection}`;
-      document.getElementById("editorFrame").src = editorUrl;
-    }
-  </script>
+    const dropdown = document.getElementById("countryDropdown");
+    const previewInfoBtn = document.getElementById("previewInfoBtn");
+    const previewTpBtn = document.getElementById("previewTpBtn");
 
+    dropdown.addEventListener("change", () => {
+      const country = encodeURIComponent(dropdown.value);
+      if (!country) return;
+
+      const frames = [
+        ["diplomaticIframe", "Diplomatic_Relations"],
+        ["diplomaticTpIframe", "Diplomatic_Relations"],
+
+        ["tradeIframe", "Bilateral_Trade_and_Economic_Relations"],
+        ["tradeTpIframe", "Bilateral_Trade_and_Economic_Relations"],
+
+        ["policyIframe", "Trade_Policy"],
+        ["policyTpIframe", "Trade_Policy"],
+
+        ["tourismIframe", "Tourism"],
+        ["tourismTpIframe", "Tourism"],
+
+        ["investmentIframe", "Investment"],
+        ["investmentTpIframe", "Investment"],
+
+        ["transportIframe", "Transport"],
+        ["transportTpIframe", "Transport"],
+
+        ["energyIframe", "Energy"],
+        ["energyTpIframe", "Energy"],
+
+        ["commsIframe", "Communications_Innovation_and_Post"],
+        ["commsTpIframe", "Communications_Innovation_and_Post"],
+
+        ["itIframe", "Information_Technology"],
+        ["itTpIframe", "Information_Technology"]
+      ];
+
+      frames.forEach(([id, section], index) => {
+        const isTP = id.includes("TpIframe");
+        const base = isTP ? "talking.html" : "editor.html";
+        const url = `https://ltortladzemoesd.github.io/ckeditor-host/${base}?country=${country}&section=${section}`;
+        const frame = parent.document.getElementById(id);
+        if (frame) frame.src = url;
+      });
+    });
+
+    previewInfoBtn.addEventListener("click", () => {
+      const country = encodeURIComponent(dropdown.value);
+      if (!country) return alert("Please select a country");
+      window.open(`https://ltortladzemoesd.github.io/ckeditor-host/preview-full-info.html?country=${country}`, "_blank");
+    });
+
+    previewTpBtn.addEventListener("click", () => {
+      const country = encodeURIComponent(dropdown.value);
+      if (!country) return alert("Please select a country");
+      window.open(`https://ltortladzemoesd.github.io/ckeditor-host/preview-full-tp.html?country=${country}`, "_blank");
+    });
+  </script>
 </body>
 </html>
