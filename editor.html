@@ -66,8 +66,16 @@
     const db = firebase.firestore();
 
     const urlParams = new URLSearchParams(window.location.search);
-    const country = urlParams.get("country") || "UnknownCountry";
-    const section = urlParams.get("section") || "UnknownSection";
+    let country = urlParams.get("country") || "";
+    let section = urlParams.get("section") || "";
+
+    if (!country || !section) {
+      const parentUrl = new URL(document.referrer);
+      const parentParams = new URLSearchParams(parentUrl.search);
+      country = country || parentParams.get("country") || "UnknownCountry";
+      section = section || parentParams.get("section") || "UnknownSection";
+    }
+
     const docId = `${country}_${section}_info`;
 
     CKEDITOR.replace('editor', {
@@ -147,7 +155,6 @@
               padding: 12px 20px;
               border-radius: 12px;
               font-size: 14px;
-              font-weight: bold;
               margin-bottom: 20px;
               display: inline-block;
             }
