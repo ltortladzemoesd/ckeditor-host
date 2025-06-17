@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Talking Points Preview</title>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #000;
+      padding: 40px;
+      line-height: 1.6;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-size: 18px;
+      margin-top: 40px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 6px;
+    }
+    .section-content {
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="countryHeading">Talking Points</h1>
+  <div id="contentContainer">Loading...</div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
+      authDomain: "ckeditor-content-saver.firebaseapp.com",
+      projectId: "ckeditor-content-saver",
+      storageBucket: "ckeditor-content-saver.appspot.com",
+      messagingSenderId: "429325764295",
+      appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const country = urlParams.get("country") || "UnknownCountry";
+    document.getElementById("countryHeading").innerText = `Talking Points: ${country.replace(/_/g, " ")}`;
+
+    const sections = {
+      Diplomatic_Relations: "Diplomatic Relations",
+      Bilateral_Trade_&_Economic_Relations: "Bilateral Trade & Economic Relations",
+      Trade_Policy: "Trade Policy",
+      Tourism: "Tourism",
+      Investment: "Investment",
+      Transport: "Transport",
+      Energy: "Energy",
+      Communications,_Innovation_and_Post: "Communications, Innovation and Post",
+      Information_Technology: "Information Technology"
+    };
+
+    const contentContainer = document.getElementById("contentContainer");
+    contentContainer.innerHTML = "";
+
+    async function loadAllSections() {
+      for (const [sectionKey, sectionTitle] of Object.entries(sections)) {
+        const docId = `${country}_${sectionKey}_tp`;
+        try {
+          const doc = await db.collection("ckeditor-content").doc(docId).get();
+          const content = doc.exists ? doc.data().content : "<em>No content available</em>";
+          const sectionDiv = document.createElement("div");
+          sectionDiv.className = "section-content";
+          sectionDiv.innerHTML = `<h2>${sectionTitle}</h2>${content}`;
+          contentContainer.appendChild(sectionDiv);
+        } catch (err) {
+          const errorDiv = document.createElement("div");
+          errorDiv.innerHTML = `<h2>${sectionTitle}</h2><p style="color:red;">Error loading section</p>`;
+          contentContainer.appendChild(errorDiv);
+        }
+      }
+    }
+
+    loadAllSections();
+  </script>
+</body>
+</html>
