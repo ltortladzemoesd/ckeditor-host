@@ -33,6 +33,7 @@
   <div id="contentContainer">Loading...</div>
 
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
       authDomain: "ckeditor-content-saver.firebaseapp.com",
@@ -42,9 +43,11 @@
       appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Get country from URL
     const urlParams = new URLSearchParams(window.location.search);
     const country = urlParams.get("country") || "UnknownCountry";
     document.getElementById("countryHeading").innerText = `Talking Points: ${country.replace(/_/g, " ")}`;
@@ -67,18 +70,26 @@
     async function loadAllSections() {
       for (const [sectionKey, sectionTitle] of Object.entries(sections)) {
         const docId = `${country}_${sectionKey}_tp`;
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "section-content";
+
+        console.log("Loading doc:", docId);
+
         try {
           const doc = await db.collection("ckeditor-content").doc(docId).get();
-          const content = doc.exists ? doc.data().content : "<em>No content available</em>";
-          const sectionDiv = document.createElement("div");
-          sectionDiv.className = "section-content";
-          sectionDiv.innerHTML = `<h2>${sectionTitle}</h2>${content}`;
-          contentContainer.appendChild(sectionDiv);
-        } catch (err) {
-          const errorDiv = document.createElement("div");
-          errorDiv.innerHTML = `<h2>${sectionTitle}</h2><p style="color:red;">Error loading section</p>`;
-          contentContainer.appendChild(errorDiv);
+
+          if (doc.exists) {
+            const content = doc.data().content;
+            sectionDiv.innerHTML = `<h2>${sectionTitle}</h2>${content}`;
+          } else {
+            sectionDiv.innerHTML = `<h2>${sectionTitle}</h2><p style="color:gray;"><em>No content found for: ${docId}</em></p>`;
+          }
+        } catch (error) {
+          console.error(`Error loading ${docId}:`, error);
+          sectionDiv.innerHTML = `<h2>${sectionTitle}</h2><p style="color:red;">Error loading section: ${error.message}</p>`;
         }
+
+        contentContainer.appendChild(sectionDiv);
       }
     }
 
