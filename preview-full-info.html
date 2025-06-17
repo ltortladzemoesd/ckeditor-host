@@ -1,59 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Information Document</title>
-  <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
+  <meta charset="UTF-8">
+  <title>Information Document Preview</title>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
   <style>
     body {
-      font-family: Arial;
-      margin: 2px;
-      background: #fefefe;
-      color: black;
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #000;
+      padding: 40px;
+      line-height: 1.6;
     }
     h1 {
-      font-size: 16px;
+      font-size: 24px;
       margin-bottom: 20px;
-      font-weight: normal;
     }
-    #status {
-      margin-top: 10px;
-      font-weight: bold;
+    h2 {
+      font-size: 18px;
+      margin-top: 40px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 6px;
     }
-    .btn {
-      margin-top: 10px;
-      padding: 10px 30px;
-      font-size: 14px;
-      border-radius: 20px;
-      background-color: #2c3e50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      margin-right: 10px;
-    }
-    textarea {
-      border-radius: 16px !important;
-    }
-    .cke_editor_editor {
-      border-radius: 16px !important;
-      overflow: hidden;
-    }
-    .cke_notification_warning {
-      display: none !important;
+    .section-content {
+      margin-bottom: 40px;
     }
   </style>
 </head>
 <body>
-  <h1>Information Document</h1>
-  <textarea id="editor"></textarea>
-  <br>
-  <button class="btn" onclick="saveContent()">Save</button>
-  <button class="btn" onclick="previewContent()">Preview</button>
-  <span id="status"></span>
+  <h1 id="countryHeading">Information Document</h1>
+  <div id="contentContainer">Loading...</div>
 
   <script>
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;");
+    }
+
     const firebaseConfig = {
       apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
       authDomain: "ckeditor-content-saver.firebaseapp.com",
@@ -68,126 +53,52 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const country = urlParams.get("country") || "UnknownCountry";
-    const section = urlParams.get("section") || "UnknownSection";
-    const docId = `${country}_${section}_info`;
+    document.getElementById("countryHeading").innerText = `Information Document: ${country.replace(/_/g, " ")}`;
 
-    CKEDITOR.replace('editor', {
-      height: 400,
-      toolbar: [
-        { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
-        { name: 'colors', items: ['TextColor', 'BGColor'] },
-        { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
-        { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'] },
-        { name: 'alignment', items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
-        { name: 'insert', items: ['Table', 'Link'] },
-        { name: 'tools', items: ['Maximize'] }
-      ]
-    });
+    const sections = {
+      Diplomatic_Relations: "Diplomatic Relations",
+      Bilateral_Trade_and_Economic_Relations: "Bilateral Trade and Economic Relations",
+      Trade_Policy: "Trade Policy",
+      Tourism: "Tourism",
+      Investment: "Investment",
+      Transport: "Transport",
+      Energy: "Energy",
+      "Communications,_Innovation_and_Post": "Communications, Innovation and Post",
+      Information_Technology: "Information Technology"
+    };
 
-    db.collection("ckeditor-content").doc(docId).get().then(doc => {
-      if (doc.exists) {
-        CKEDITOR.instances.editor.setData(doc.data().content || "");
+    const contentContainer = document.getElementById("contentContainer");
+    contentContainer.innerHTML = "";
+
+    async function loadAllSections() {
+      for (const [sectionKey, sectionTitle] of Object.entries(sections)) {
+        const docId = `${country}_${sectionKey}_info`; // _info suffix
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "section-content";
+
+        console.log("Loading:", docId);
+
+        try {
+          const doc = await db.collection("ckeditor-content").doc(docId).get();
+
+          if (doc.exists) {
+            const content = doc.data().content;
+            sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2>`;
+            sectionDiv.insertAdjacentHTML('beforeend', content);
+          } else {
+            sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2><p style="color:gray;"><em>No content found for: ${docId}</em></p>`;
+          }
+        } catch (error) {
+          console.error(`❌ Error loading ${docId}:`, error);
+          sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2><p style="color:red;">Error: ${error.message}</p>`;
+        }
+
+        contentContainer.appendChild(sectionDiv);
       }
-    });
-
-    function saveContent() {
-      const html = CKEDITOR.instances.editor.getData();
-      const status = document.getElementById("status");
-      status.innerText = "Saving...";
-      db.collection("ckeditor-content").doc(docId).set({ content: html })
-        .then(() => {
-          status.innerText = "✅ Successfully Saved";
-          status.style.color = "green";
-        })
-        .catch(err => {
-          status.innerText = "❌ Error: " + err.message;
-          status.style.color = "red";
-        });
     }
 
-    function previewContent() {
-      const html = CKEDITOR.instances.editor.getData().trim();
-      if (!html) return alert("This field is empty");
-
-      const cleanCountry = country.replace(/_/g, " ");
-      const cleanSection = section.replace(/_/g, " ");
-      const documentType = "Information Document";
-
-      const previewHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Preview</title>
-          <style>
-            body {
-              font-family: Arial;
-              padding: 40px;
-              background: #fff;
-              color: #000;
-              line-height: 1.6;
-            }
-            .header-box {
-              background-color: #f0f4f8;
-              padding: 20px;
-              border-radius: 12px;
-              text-align: center;
-              margin-bottom: 30px;
-            }
-            .country-name {
-              font-size: 18px;
-              font-weight: bold;
-              margin: 0;
-            }
-            .section-name {
-              font-size: 16px;
-              margin-top: 5px;
-              margin-bottom: 0;
-            }
-            .doc-type-box {
-              background-color: #f0f4f8;
-              padding: 12px 20px;
-              border-radius: 12px;
-              font-size: 14px;
-              font-weight: normal;
-              margin-bottom: 20px;
-              display: inline-block;
-            }
-            .download-btn {
-              position: fixed;
-              top: 20px;
-              right: 20px;
-              background-color: #2c3e50;
-              color: white;
-              padding: 10px 20px;
-              border-radius: 20px;
-              text-decoration: none;
-              font-size: 14px;
-              font-family: Arial;
-            }
-            .download-btn::before {
-              content: "\1F4BE";
-              margin-right: 8px;
-            }
-          </style>
-        </head>
-        <body>
-          <a class="download-btn" href="#" onclick="window.print()">Save PDF</a>
-          <div class="header-box">
-            <p class="country-name">${cleanCountry}</p>
-            <p class="section-name">${cleanSection}</p>
-            <p style="font-size: 12px; margin-top: 5px;">${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-          </div>
-          <div class="doc-type-box">${documentType}</div>
-          ${html}
-        </body>
-        </html>
-      `;
-
-      const win = window.open();
-      win.document.open();
-      win.document.write(previewHtml);
-      win.document.close();
-    }
+    loadAllSections();
   </script>
 </body>
 </html>
+
