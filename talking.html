@@ -151,6 +151,20 @@
               margin-bottom: 20px;
               display: inline-block;
             }
+            table, th, td {
+              border: 1px solid #ccc;
+              border-collapse: collapse;
+            }
+            th, td {
+              padding: 6px 10px;
+            }
+            table td, table th {
+              background-color: inherit !important;
+              color: inherit !important;
+            }
+            table td[style], table th[style] {
+              all: revert !important;
+            }
           </style>
         </head>
         <body>
@@ -172,3 +186,4 @@
   </script>
 </body>
 </html>
+
