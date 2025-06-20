@@ -8,7 +8,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 30mm 20mm; /* top-bottom, left-right */
+      margin: 30px 40px; /* desktop-friendly margins */
       padding: 0;
       background-color: #fff;
       color: #000;
@@ -86,22 +86,25 @@
     document.getElementById("currentDate").textContent = new Date().toLocaleDateString("en-GB");
 
     const container = document.getElementById("sections");
-    sections.forEach(async section => {
-      const docRef = doc(db, "talking-points", `${country}_${section.key}`);
-      const docSnap = await getDoc(docRef);
+    const renderSections = async () => {
+      for (const section of sections) {
+        const docRef = doc(db, "talking-points", `${country}_${section.key}`);
+        const docSnap = await getDoc(docRef);
 
-      const div = document.createElement("div");
-      div.className = "section";
-      div.innerHTML = `<h2>${section.title}</h2>` + (docSnap.exists() ? docSnap.data().content : "<i>No data available</i>");
-      container.appendChild(div);
-    });
+        const div = document.createElement("div");
+        div.className = "section";
+        div.innerHTML = `<h2>${section.title}</h2>` + (docSnap.exists() ? docSnap.data().content : "<i>No data available</i>");
+        container.appendChild(div);
+      }
+    };
+    renderSections();
 
     document.getElementById("saveBtn").addEventListener("click", () => {
       const opt = {
-        margin: [20, 15, 20, 15],
+        margin: [15, 15, 15, 15],
         filename: `Talking_Points_${country}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
+        html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
