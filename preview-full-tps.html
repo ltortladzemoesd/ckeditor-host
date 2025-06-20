@@ -10,6 +10,8 @@
     body {
       font-family: Arial, sans-serif;
       padding: 40px;
+      margin: 40px auto;
+      max-width: 800px;
       background: #fff;
       color: #000;
       line-height: 1.6;
@@ -49,6 +51,9 @@
       padding-bottom: 5px;
     }
     #saveBtn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
       background: #2c3e50;
       color: white;
       border: none;
@@ -56,11 +61,12 @@
       border-radius: 20px;
       font-size: 14px;
       cursor: pointer;
-      margin-bottom: 20px;
+      z-index: 9999;
     }
   </style>
 </head>
 <body>
+  <button id="saveBtn">💾 Save PDF</button>
   <div id="pdfContent">
     <div class="header-box">
       <p class="country-name" id="countryName">Loading...</p>
@@ -70,15 +76,11 @@
     <div id="content"></div>
   </div>
 
-  <button id="saveBtn">💾 Save PDF</button>
-
   <script>
-    // Set today's date
     const today = new Date();
     const formattedDate = today.toLocaleDateString("en-GB").replace(/\//g, ".");
     document.getElementById("todayDate").innerText = formattedDate;
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
       authDomain: "ckeditor-content-saver.firebaseapp.com",
