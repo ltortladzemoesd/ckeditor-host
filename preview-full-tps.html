@@ -1,94 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Talking Points Preview</title>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
+      padding: 40px;
       background: #fff;
       color: #000;
-      padding: 40px;
       line-height: 1.6;
     }
-    h1 {
-      font-size: 24px;
-      margin-bottom: 6px;
-    }
-    .date-line {
-      font-size: 12px;
-      color: #555;
+    .header-box {
+      background-color: #f0f4f8;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
       margin-bottom: 20px;
     }
-    h2 {
-      font-size: 18px;
-      margin-top: 40px;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 6px;
+    .country-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 0;
     }
-    .section-content {
+    .date-box {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .doc-type-box {
+      background-color: #f0f4f8;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      display: inline-block;
+    }
+    .section {
       margin-bottom: 40px;
     }
+    .section h3 {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
     #saveBtn {
-      margin-bottom: 30px;
-      padding: 10px 30px;
-      font-size: 14px;
-      border-radius: 20px;
-      background-color: #2c3e50;
+      background: #2c3e50;
       color: white;
       border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
       cursor: pointer;
-    }
-
-    table, th, td {
-      border: 1px solid #ccc;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 6px 10px;
-    }
-
-    table td[style], table th[style] {
-      all: revert !important;
-    }
-
-    @media print {
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
-  <button id="saveBtn">Save as PDF</button>
-
   <div id="pdfContent">
-    <h1 id="countryHeading">Talking Points</h1>
-    <div class="date-line" id="currentDate"></div>
-    <div id="contentContainer">Loading...</div>
+    <div class="header-box">
+      <p class="country-name" id="countryName">Loading...</p>
+      <p class="date-box" id="todayDate"></p>
+    </div>
+    <div class="doc-type-box">Talking Points</div>
+    <div id="content"></div>
   </div>
 
+  <button id="saveBtn">💾 Save PDF</button>
+
   <script>
-    // Escape HTML
-    function escapeHtml(text) {
-      return text.replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;");
-    }
-
-    // Format current date
+    // Set today's date
     const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const yyyy = today.getFullYear();
-    document.getElementById("currentDate").textContent = `${dd}.${mm}.${yyyy}`;
+    const formattedDate = today.toLocaleDateString("en-GB").replace(/\//g, ".");
+    document.getElementById("todayDate").innerText = formattedDate;
 
-    // Firebase init
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
       authDomain: "ckeditor-content-saver.firebaseapp.com",
@@ -97,67 +87,50 @@
       messagingSenderId: "429325764295",
       appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Get country param
     const urlParams = new URLSearchParams(window.location.search);
     const country = urlParams.get("country") || "UnknownCountry";
-    document.getElementById("countryHeading").innerText = `Talking Points: ${country.replace(/\_/g, " ")}`;
+    document.getElementById("countryName").innerText = country;
 
-    // Section list
-    const sections = {
-      Diplomatic_Relations: "Diplomatic Relations",
-      Bilateral_Trade_and_Economic_Relations: "Bilateral Trade and Economic Relations",
-      Trade_Policy: "Trade Policy",
-      Tourism: "Tourism",
-      Investment: "Investment",
-      Transport: "Transport",
-      Energy: "Energy",
-      Communications_Innovation_and_Post: "Communications, Innovation and Post",
-      Information_Technology: "Information Technology"
-    };
+    const sections = [
+      { id: "diplomaticTpIframe", name: "Diplomatic Relations", section: "Diplomatic_Relations" },
+      { id: "tradeTpIframe", name: "Bilateral Trade and Economic Relations", section: "Bilateral_Trade_and_Economic_Relations" },
+      { id: "policyTpIframe", name: "Trade Policy", section: "Trade_Policy" },
+      { id: "tourismTpIframe", name: "Tourism", section: "Tourism" },
+      { id: "investmentTpIframe", name: "Investment", section: "Investment" },
+      { id: "transportTpIframe", name: "Transport", section: "Transport" },
+      { id: "energyTpIframe", name: "Energy", section: "Energy" },
+      { id: "commsTpIframe", name: "Communications, Innovation and Post", section: "Communications_Innovation_and_Post" },
+      { id: "itTpIframe", name: "Information Technology", section: "Information_Technology" }
+    ];
 
-    const contentContainer = document.getElementById("contentContainer");
-    contentContainer.innerHTML = "";
+    const container = document.getElementById("content");
 
-    async function loadAllSections() {
-      for (const [sectionKey, sectionTitle] of Object.entries(sections)) {
-        const docId = `${country}_${sectionKey}_tp`;
-        const sectionDiv = document.createElement("div");
-        sectionDiv.className = "section-content";
-        console.log("Loading:", docId);
-        try {
-          const doc = await db.collection("ckeditor-content").doc(docId).get();
-          if (doc.exists) {
-            const content = doc.data().content;
-            sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2>`;
-            sectionDiv.insertAdjacentHTML('beforeend', content);
-          } else {
-            sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2><p style="color:gray;"><em>No content found for: ${docId}</em></p>`;
-          }
-        } catch (error) {
-          console.error(`❌ Error loading ${docId}:`, error);
-          sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2><p style="color:red;">Error: ${error.message}</p>`;
-        }
-        contentContainer.appendChild(sectionDiv);
-      }
-    }
+    Promise.all(sections.map(({ name, section }) => {
+      const docId = `${country}_${section}_tp`;
+      return db.collection("ckeditor-content").doc(docId).get().then(doc => {
+        const html = doc.exists ? doc.data().content || "" : "";
+        return `<div class="section">
+                  <h3>${name}</h3>
+                  ${html}
+                </div>`;
+      });
+    })).then(sectionsHtml => {
+      container.innerHTML = sectionsHtml.join("");
+    });
 
-    loadAllSections();
-
-    // Save as PDF
     document.getElementById("saveBtn").addEventListener("click", () => {
-      const element = document.getElementById("pdfContent");
       const opt = {
-        margin:       0.3,
-        filename:     `${country}_TalkingPoints.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+        filename: `TalkingPoints_${country}_${formattedDate}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
       };
-      html2pdf().set(opt).from(element).save();
+      html2pdf().set(opt).from(document.getElementById("pdfContent")).save();
     });
   </script>
 </body>
