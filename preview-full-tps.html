@@ -40,6 +40,11 @@
       cursor: pointer;
       z-index: 1000;
     }
+    @media print {
+      #saveBtn {
+        display: none !important;
+      }
+    }
     h1 {
       font-size: 24px;
       margin-bottom: 5px;
@@ -111,13 +116,13 @@
     const contentContainer = document.getElementById("contentContainer");
     contentContainer.innerHTML = "";
 
+    let isContentLoaded = false;
+
     async function loadAllSections() {
       for (const [sectionKey, sectionTitle] of Object.entries(sections)) {
         const docId = `${country}_${sectionKey}_tp`; // _tp suffix
         const sectionDiv = document.createElement("div");
         sectionDiv.className = "section-content";
-
-        console.log("Loading:", docId);
 
         try {
           const doc = await db.collection("ckeditor-content").doc(docId).get();
@@ -130,18 +135,32 @@
             sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2><p style="color:gray;"><em>No content found for: ${docId}</em></p>`;
           }
         } catch (error) {
-          console.error(`❌ Error loading ${docId}:`, error);
           sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2><p style="color:red;">Error: ${error.message}</p>`;
         }
 
         contentContainer.appendChild(sectionDiv);
       }
+
+      isContentLoaded = true;
     }
 
-    function savePDF() {
+    async function savePDF() {
       const element = document.getElementById("pdfContent");
       const btn = document.getElementById("saveBtn");
       btn.style.display = 'none';
+
+      if (!isContentLoaded) {
+        console.log("⏳ Waiting for content to load...");
+        await new Promise(resolve => {
+          const check = setInterval(() => {
+            if (isContentLoaded) {
+              clearInterval(check);
+              resolve();
+            }
+          }, 100);
+        });
+      }
+
       const opt = {
         margin: 20,
         filename: `Talking_Points_${country}.pdf`,
@@ -150,6 +169,7 @@
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
+
       html2pdf().set(opt).from(element).save().then(() => {
         btn.style.display = 'block';
       });
