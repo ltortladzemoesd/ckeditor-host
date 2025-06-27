@@ -10,8 +10,13 @@
       font-family: Arial, sans-serif;
       background: #fff;
       color: #000;
+      display: flex;
+      justify-content: center;
       padding: 40px;
-      line-height: 1.6;
+    }
+    .wrapper {
+      max-width: 800px;
+      width: 100%;
     }
     h1 {
       font-size: 24px;
@@ -29,8 +34,10 @@
   </style>
 </head>
 <body>
-  <h1 id="countryHeading">Talking Points</h1>
-  <div id="contentContainer">Loading...</div>
+  <div class="wrapper">
+    <h1 id="countryHeading">Talking Points</h1>
+    <div id="contentContainer">Loading...</div>
+  </div>
 
   <script>
     function escapeHtml(text) {
