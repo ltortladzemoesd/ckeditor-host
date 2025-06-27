@@ -7,6 +7,11 @@
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
     body {
       font-family: Arial, sans-serif;
       background: #fff;
@@ -14,11 +19,13 @@
       display: flex;
       justify-content: center;
       padding: 40px;
+      box-sizing: border-box;
     }
     .wrapper {
       max-width: 800px;
       width: 100%;
       position: relative;
+      box-sizing: border-box;
     }
     #saveBtn {
       position: fixed;
@@ -50,12 +57,13 @@
     }
     .section-content {
       margin-bottom: 40px;
+      page-break-inside: avoid;
     }
   </style>
 </head>
 <body>
+  <button id="saveBtn" onclick="savePDF()">Save as PDF</button>
   <div class="wrapper" id="pdfContent">
-    <button id="saveBtn" onclick="savePDF()">Save as PDF</button>
     <h1 id="countryHeading">Talking Points</h1>
     <div id="currentDate"></div>
     <div id="contentContainer">Loading...</div>
@@ -135,10 +143,10 @@
       const btn = document.getElementById("saveBtn");
       btn.style.display = 'none';
       const opt = {
-        margin: [20, 20, 20, 20],
+        margin: 20,
         filename: `Talking_Points_${country}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { scale: 2, useCORS: true, windowWidth: 1000 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
