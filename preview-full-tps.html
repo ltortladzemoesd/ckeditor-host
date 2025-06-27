@@ -21,16 +21,17 @@
       position: relative;
     }
     #saveBtn {
-      position: absolute;
-      top: 0;
-      left: 0;
+      position: fixed;
+      top: 10px;
+      left: 10px;
       font-size: 12px;
-      padding: 6px 10px;
+      padding: 6px 12px;
       background-color: #2c3e50;
       color: #fff;
       border: none;
-      border-radius: 4px;
+      border-radius: 12px;
       cursor: pointer;
+      z-index: 1000;
     }
     h1 {
       font-size: 24px;
@@ -131,6 +132,8 @@
 
     function savePDF() {
       const element = document.getElementById("pdfContent");
+      const btn = document.getElementById("saveBtn");
+      btn.style.display = 'none';
       const opt = {
         margin: [20, 20, 20, 20],
         filename: `Talking_Points_${country}.pdf`,
@@ -139,7 +142,9 @@
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
-      html2pdf().set(opt).from(element).save();
+      html2pdf().set(opt).from(element).save().then(() => {
+        btn.style.display = 'block';
+      });
     }
 
     loadAllSections();
