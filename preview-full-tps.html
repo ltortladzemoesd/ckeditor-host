@@ -129,7 +129,7 @@
     let isContentLoaded = false;
 
     async function loadAllSections() {
-      contentContainer.innerHTML = ""; // clear any stuck content
+      contentContainer.innerHTML = "";
       for (const [sectionKey, sectionTitle] of Object.entries(sections)) {
         const docId = `${country}_${sectionKey}_tp`;
         const sectionDiv = document.createElement("div");
@@ -163,8 +163,6 @@
 
       const element = document.getElementById("pdfContent");
       const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL("image/jpeg", 1.0);
-
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
@@ -172,6 +170,7 @@
       const pageHeight = 297;
       const margin = 15;
       const footerOffsetPx = 50;
+      const overlapPx = 30;
 
       const imgWidth = pageWidth - 2 * margin;
       const pageHeightPx = (canvas.width / imgWidth) * (pageHeight - 2 * margin);
@@ -181,6 +180,7 @@
 
       while (position < canvas.height) {
         const sliceHeight = Math.min(pageHeightPx - footerOffsetPx, canvas.height - position);
+
         const pageCanvas = document.createElement("canvas");
         pageCanvas.width = canvas.width;
         pageCanvas.height = sliceHeight + footerOffsetPx;
@@ -188,17 +188,40 @@
         const pageCtx = pageCanvas.getContext("2d");
         pageCtx.fillStyle = "#fff";
         pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-        pageCtx.drawImage(canvas, 0, position, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+        pageCtx.drawImage(
+          canvas,
+          0,
+          position,
+          canvas.width,
+          sliceHeight,
+          0,
+          0,
+          canvas.width,
+          sliceHeight
+        );
 
         const pageImgData = pageCanvas.toDataURL("image/jpeg", 1.0);
         if (pageCount > 0) pdf.addPage();
-        pdf.addImage(pageImgData, "JPEG", margin, margin, imgWidth, (pageCanvas.height * imgWidth) / canvas.width, '', 'FAST');
 
-        // ✅ Just the number in bottom-right corner
+        const imageHeightInMM = (pageCanvas.height * imgWidth) / canvas.width;
+        const maxImageHeight = pageHeight - 2 * margin - 10;
+        const finalHeight = Math.min(imageHeightInMM, maxImageHeight);
+
+        pdf.addImage(
+          pageImgData,
+          "JPEG",
+          margin,
+          margin,
+          imgWidth,
+          finalHeight,
+          '',
+          'FAST'
+        );
+
         pdf.setFontSize(10);
-        pdf.text(`${pageCount + 1}`, pageWidth - margin, pageHeight - 15, { align: 'right' });
+        pdf.text(`${pageCount + 1}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
 
-        position += sliceHeight;
+        position += sliceHeight - overlapPx; // <-- important: overlap slices
         pageCount++;
       }
 
