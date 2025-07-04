@@ -18,23 +18,22 @@
       color: #000;
       display: flex;
       justify-content: center;
-      padding: 40px;
       box-sizing: border-box;
+      height: 100%;
     }
     .wrapper {
-      max-width: 800px;
-      width: 100%;
-      position: relative;
+      width: 170mm;
       box-sizing: border-box;
+      margin: 0 auto;
+      padding: 0;
     }
-
     @media print, screen {
       .wrapper {
-        width: 170mm; /* Fix for correct A4 width with margins */
+        width: 170mm;
         margin: 0 auto;
+        padding: 0;
       }
     }
-
     #saveBtn {
       position: fixed;
       top: 10px;
@@ -78,9 +77,11 @@
 <body>
   <button id="saveBtn" onclick="savePDF()">Save as PDF</button>
   <div class="wrapper" id="pdfContent">
-    <h1 id="countryHeading">Talking Points</h1>
-    <div id="currentDate"></div>
-    <div id="contentContainer">Loading...</div>
+    <div style="padding: 20mm;">
+      <h1 id="countryHeading">Talking Points</h1>
+      <div id="currentDate"></div>
+      <div id="contentContainer">Loading...</div>
+    </div>
   </div>
 
   <script>
@@ -171,13 +172,13 @@
       }
 
       const opt = {
-        margin: [20, 20, 20, 20],
+        margin: [0, 0, 0, 0], // margins handled by padding inside wrapper
         filename: `Talking_Points_${country}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
-          windowWidth: 1122 // ~170mm @ 96dpi
+          windowWidth: 1122 // 170mm @ 96dpi
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
