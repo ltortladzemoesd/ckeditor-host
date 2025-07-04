@@ -27,6 +27,14 @@
       position: relative;
       box-sizing: border-box;
     }
+
+    @media print, screen {
+      .wrapper {
+        width: 170mm; /* Fix for correct A4 width with margins */
+        margin: 0 auto;
+      }
+    }
+
     #saveBtn {
       position: fixed;
       top: 10px;
@@ -63,6 +71,7 @@
     .section-content {
       margin-bottom: 40px;
       page-break-inside: avoid;
+      break-inside: avoid;
     }
   </style>
 </head>
@@ -120,7 +129,7 @@
 
     async function loadAllSections() {
       for (const [sectionKey, sectionTitle] of Object.entries(sections)) {
-        const docId = `${country}_${sectionKey}_tp`; // _tp suffix
+        const docId = `${country}_${sectionKey}_tp`;
         const sectionDiv = document.createElement("div");
         sectionDiv.className = "section-content";
 
@@ -162,10 +171,14 @@
       }
 
       const opt = {
-        margin: 20,
+        margin: [20, 20, 20, 20],
         filename: `Talking_Points_${country}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, windowWidth: 1000 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          windowWidth: 1122 // ~170mm @ 96dpi
+        },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
