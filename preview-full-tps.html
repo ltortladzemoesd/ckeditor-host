@@ -166,44 +166,41 @@
     }
 
     async function savePDF() {
-      const btn = document.getElementById("saveBtn");
-      btn.style.display = 'none';
+  const btn = document.getElementById("saveBtn");
+  btn.style.display = 'none';
 
-      // Wait until all content is loaded
-      while (!isContentLoaded) await new Promise(r => setTimeout(r, 100));
+  while (!isContentLoaded) await new Promise(r => setTimeout(r, 100));
 
-      const element = document.getElementById("pdfContent");
+  const element = document.getElementById("pdfContent");
 
-      const opt = {
-        margin:       [15, 15, 15, 15], // top, left, bottom, right
-        filename:     `Talking_Points_${country}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-      };
+  const opt = {
+    margin:       [15, 15, 15, 15], // top, left, bottom, right
+    filename:     `Talking_Points_${country}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+  };
 
-      const worker = html2pdf().set(opt).from(element).toContainer().toCanvas().toPdf();
+  const worker = html2pdf().set(opt).from(element).toPdf();
 
-      // Add page numbers after PDF is created
-      worker.get('pdf').then(function (pdf) {
-        const totalPages = pdf.internal.getNumberOfPages();
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
+  worker.get('pdf').then(function (pdf) {
+    const totalPages = pdf.internal.getNumberOfPages();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    pdf.setFontSize(10);
 
-        pdf.setFontSize(10);
-
-        for (let i = 1; i <= totalPages; i++) {
-          pdf.setPage(i);
-          pdf.text(`${i}`, pageWidth - 15, pageHeight - 10, { align: 'right' });
-        }
-      });
-
-      // Save the PDF
-      worker.save().then(() => {
-        btn.style.display = 'block';
-      });
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      pdf.text(`${i}`, pageWidth - 15, pageHeight - 10, { align: 'right' });
     }
+  });
+
+  worker.save().then(() => {
+    btn.style.display = 'block';
+  });
+}
+
 
     loadAllSections();
   </script>
