@@ -8,40 +8,73 @@
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
 
-  <!-- html2canvas + jsPDF (replacing html2pdf) -->
+  <!-- html2canvas + jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    html, body { margin:0; padding:0; }
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
     body {
       font-family: Arial, sans-serif;
-      background:#fff;
-      color:#000;
-      display:flex;
-      justify-content:center;
+      background: #fff;
+      color: #000;
+      display: flex;
+      justify-content: center;
     }
 
-    /* 210 mm @ 96 dpi ≈ 794 px */
     .wrapper {
-      width:794px;
-      padding:40px;          /* ≈ 15 mm visual margin inside the page */
-      box-sizing:border-box;
-      background:#fff;
+      width: 794px; /* ~210mm at 96 DPI */
+      padding: 40px;
+      box-sizing: border-box;
+      background: #fff;
     }
 
-    #saveBtn{
-      position:fixed; top:10px; left:10px;
-      font-size:12px; padding:6px 12px;
-      background:#2c3e50; color:#fff;
-      border:none; border-radius:12px; cursor:pointer; z-index:1000;
+    #saveBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 12px;
+      padding: 6px 12px;
+      background-color: #2c3e50;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      z-index: 1000;
     }
-    @media print { #saveBtn{ display:none!important; } }
 
-    h1{ font-size:24px; margin-bottom:5px; }
-    #currentDate{ font-size:12px; margin-bottom:20px; color:#444; }
-    h2{ font-size:18px; margin-top:40px; border-bottom:1px solid #ccc; padding-bottom:6px; }
-    .section-content{ margin-bottom:40px; break-inside:avoid; page-break-inside:avoid; }
+    @media print {
+      #saveBtn {
+        display: none !important;
+      }
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    #currentDate {
+      font-size: 12px;
+      margin-bottom: 20px;
+      color: #444;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 40px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 6px;
+    }
+
+    .section-content {
+      margin-bottom: 40px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
   </style>
 </head>
 <body>
@@ -54,81 +87,122 @@
   </div>
 
   <script>
-    /* --- helper --- */
-    function escapeHtml(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-
-    /* --- Firebase init (unchanged) --- */
-    const firebaseConfig={ apiKey:"AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
-      authDomain:"ckeditor-content-saver.firebaseapp.com",
-      projectId:"ckeditor-content-saver",
-      storageBucket:"ckeditor-content-saver.appspot.com",
-      messagingSenderId:"429325764295",
-      appId:"1:429325764295:web:ef0006899c4461e1afa0e2" };
-    firebase.initializeApp(firebaseConfig);
-    const db=firebase.firestore();
-
-    /* --- page heading & date (unchanged) --- */
-    const urlParams=new URLSearchParams(window.location.search);
-    const country=urlParams.get("country")||"UnknownCountry";
-    document.getElementById("countryHeading").innerText=`Talking Points: ${country.replace(/_/g," ")}`;
-    document.getElementById("currentDate").innerText=new Date().toLocaleDateString("en-GB").replaceAll('/','.');
-
-    /* --- sections loader (unchanged) --- */
-    const sections={
-      Diplomatic_Relations:"Diplomatic Relations",
-      Bilateral_Trade_and_Economic_Relations:"Bilateral Trade and Economic Relations",
-      Trade_Policy:"Trade Policy", Tourism:"Tourism", Investment:"Investment",
-      Transport:"Transport", Energy:"Energy",
-      "Communications,_Innovation_and_Post":"Communications, Innovation and Post",
-      Information_Technology:"Information Technology"};
-    const contentContainer=document.getElementById("contentContainer");
-    let isContentLoaded=false;
-
-    (async function loadAllSections(){
-      for(const [key,title] of Object.entries(sections)){
-        const docId=`${country}_${key}_tp`;
-        const sec=document.createElement("div");
-        sec.className="section-content";
-        try{
-          const doc=await db.collection("ckeditor-content").doc(docId).get();
-          if(doc.exists){
-            sec.innerHTML=`<h2>${escapeHtml(title)}</h2>`;
-            sec.insertAdjacentHTML("beforeend",doc.data().content);
-          }else{
-            sec.innerHTML=`<h2>${escapeHtml(title)}</h2><p style="color:gray;"><em>No content found for ${docId}</em></p>`;
-          }
-        }catch(e){
-          sec.innerHTML=`<h2>${escapeHtml(title)}</h2><p style="color:red;">Error: ${e.message}</p>`;
-        }
-        contentContainer.appendChild(sec);
-      }
-      isContentLoaded=true;
-    })();
-
-    /* --- new savePDF using html2canvas + jsPDF --- */
-    async function savePDF(){
-      const btn=document.getElementById("saveBtn");
-      btn.style.display='none';
-
-      /* wait until sections are loaded */
-      while(!isContentLoaded) await new Promise(r=>setTimeout(r,100));
-
-      const element=document.getElementById("pdfContent");
-      const canvas=await html2canvas(element,{scale:2,useCORS:true});
-      const imgData=canvas.toDataURL("image/jpeg",1.0);
-
-      const { jsPDF }=window.jspdf;
-      const pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
-
-      const pageW=210, pageH=297, margin=15;
-      const imgW=pageW-2*margin;
-      const imgH=canvas.height*imgW/canvas.width;
-
-      pdf.addImage(imgData,'JPEG',margin,margin,imgW,imgH,'','FAST');
-      pdf.save(`Talking_Points_${country}.pdf`);
-
-      btn.style.display='block';
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;");
     }
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
+      authDomain: "ckeditor-content-saver.firebaseapp.com",
+      projectId: "ckeditor-content-saver",
+      storageBucket: "ckeditor-content-saver.appspot.com",
+      messagingSenderId: "429325764295",
+      appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const country = urlParams.get("country") || "UnknownCountry";
+    document.getElementById("countryHeading").innerText = `Talking Points: ${country.replace(/_/g, " ")}`;
+
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-GB").replaceAll('/', '.');
+    document.getElementById("currentDate").innerText = formattedDate;
+
+    const sections = {
+      Diplomatic_Relations: "Diplomatic Relations",
+      Bilateral_Trade_and_Economic_Relations: "Bilateral Trade and Economic Relations",
+      Trade_Policy: "Trade Policy",
+      Tourism: "Tourism",
+      Investment: "Investment",
+      Transport: "Transport",
+      Energy: "Energy",
+      "Communications,_Innovation_and_Post": "Communications, Innovation and Post",
+      Information_Technology: "Information Technology"
+    };
+
+    const contentContainer = document.getElementById("contentContainer");
+    let isContentLoaded = false;
+
+    async function loadAllSections() {
+      for (const [sectionKey, sectionTitle] of Object.entries(sections)) {
+        const docId = `${country}_${sectionKey}_tp`;
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "section-content";
+
+        try {
+          const doc = await db.collection("ckeditor-content").doc(docId).get();
+
+          if (doc.exists) {
+            const content = doc.data().content;
+            sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2>`;
+            sectionDiv.insertAdjacentHTML('beforeend', content);
+          } else {
+            sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2><p style="color:gray;"><em>No content found for: ${docId}</em></p>`;
+          }
+        } catch (error) {
+          sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2><p style="color:red;">Error: ${error.message}</p>`;
+        }
+
+        contentContainer.appendChild(sectionDiv);
+      }
+
+      isContentLoaded = true;
+    }
+
+    async function savePDF() {
+      const btn = document.getElementById("saveBtn");
+      btn.style.display = 'none';
+
+      while (!isContentLoaded) await new Promise(r => setTimeout(r, 100));
+
+      const element = document.getElementById("pdfContent");
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 15;
+
+      const imgWidth = pageWidth - 2 * margin;
+      const pageHeightPx = (canvas.width / imgWidth) * (pageHeight - 2 * margin);
+      const ctx = canvas.getContext("2d");
+
+      let position = 0;
+      let pageCount = 0;
+
+      while (position < canvas.height) {
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = Math.min(pageHeightPx, canvas.height - position);
+
+        const pageCtx = pageCanvas.getContext("2d");
+        pageCtx.drawImage(canvas, 0, position, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+
+        const pageImgData = pageCanvas.toDataURL("image/jpeg", 1.0);
+        if (pageCount > 0) pdf.addPage();
+        pdf.addImage(pageImgData, "JPEG", margin, margin, imgWidth, (pageCanvas.height * imgWidth) / canvas.width, '', 'FAST');
+
+        position += pageHeightPx;
+        pageCount++;
+      }
+
+      pdf.save(`Talking_Points_${country}.pdf`);
+      btn.style.display = 'block';
+    }
+
+    loadAllSections();
   </script>
 </body>
 </html>
