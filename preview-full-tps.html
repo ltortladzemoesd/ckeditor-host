@@ -8,7 +8,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     html, body {
-      height: 100%;
       margin: 0;
       padding: 0;
     }
@@ -18,22 +17,15 @@
       color: #000;
       display: flex;
       justify-content: center;
-      box-sizing: border-box;
-      height: 100%;
     }
+
     .wrapper {
-      width: 170mm;
+      width: 794px; /* 210mm at 96 DPI */
+      padding: 40px; /* ~15mm padding for visual margins */
       box-sizing: border-box;
-      margin: 0 auto;
-      padding: 0;
+      background-color: white;
     }
-    @media print, screen {
-      .wrapper {
-        width: 170mm;
-        margin: 0 auto;
-        padding: 0;
-      }
-    }
+
     #saveBtn {
       position: fixed;
       top: 10px;
@@ -52,21 +44,25 @@
         display: none !important;
       }
     }
+
     h1 {
       font-size: 24px;
       margin-bottom: 5px;
     }
+
     #currentDate {
       font-size: 12px;
       margin-bottom: 20px;
       color: #444;
     }
+
     h2 {
       font-size: 18px;
       margin-top: 40px;
       border-bottom: 1px solid #ccc;
       padding-bottom: 6px;
     }
+
     .section-content {
       margin-bottom: 40px;
       page-break-inside: avoid;
@@ -77,11 +73,9 @@
 <body>
   <button id="saveBtn" onclick="savePDF()">Save as PDF</button>
   <div class="wrapper" id="pdfContent">
-    <div style="padding: 20mm;">
-      <h1 id="countryHeading">Talking Points</h1>
-      <div id="currentDate"></div>
-      <div id="contentContainer">Loading...</div>
-    </div>
+    <h1 id="countryHeading">Talking Points</h1>
+    <div id="currentDate"></div>
+    <div id="contentContainer">Loading...</div>
   </div>
 
   <script>
@@ -172,13 +166,13 @@
       }
 
       const opt = {
-        margin: [0, 0, 0, 0], // margins handled by padding inside wrapper
+        margin: 0,
         filename: `Talking_Points_${country}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
-          windowWidth: 1122 // 170mm @ 96dpi
+          windowWidth: 794 // matches wrapper width exactly
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
