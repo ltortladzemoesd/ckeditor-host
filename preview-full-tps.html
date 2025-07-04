@@ -8,8 +8,9 @@
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
 
-  <!-- html2pdf.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Canvas & PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     html, body {
@@ -26,7 +27,7 @@
     }
 
     .wrapper {
-      width: 794px;
+      width: 794px; /* ~210mm at 96 DPI */
       padding: 40px;
       box-sizing: border-box;
       background: #fff;
@@ -171,29 +172,43 @@
       while (!isContentLoaded) await new Promise(r => setTimeout(r, 100));
 
       const element = document.getElementById("pdfContent");
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgHeight = canvas.height;
+      const imgWidth = canvas.width;
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
 
-      const opt = {
-        margin:       [15, 15, 15, 15],
-        filename:     `Talking_Points_${country}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-      };
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
-      const worker = html2pdf().set(opt).from(element).toPdf();
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 15;
+      const usableWidth = pageWidth - 2 * margin;
+      const usableHeight = pageHeight - 2 * margin;
 
-      const pdf = await worker.get('pdf');
+      const pageHeightPx = (usableHeight * imgWidth) / usableWidth;
+      let position = 0;
+      let pageNumber = 1;
 
-      const totalPages = pdf.internal.getNumberOfPages();
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
+      while (position < imgHeight) {
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = imgWidth;
+        pageCanvas.height = Math.min(pageHeightPx, imgHeight - position);
+        const ctx = pageCanvas.getContext("2d");
 
-      pdf.setFontSize(10);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, position, imgWidth, pageCanvas.height, 0, 0, imgWidth, pageCanvas.height);
 
-      for (let i = 1; i <= totalPages; i++) {
-        pdf.setPage(i);
-        pdf.text(`${i}`, pageWidth - 15, pageHeight - 10, { align: 'right' });
+        const pageImgData = pageCanvas.toDataURL("image/jpeg", 1.0);
+        if (position > 0) pdf.addPage();
+        pdf.addImage(pageImgData, "JPEG", margin, margin, usableWidth, usableHeight, '', 'FAST');
+
+        pdf.setFontSize(10);
+        pdf.text(`${pageNumber}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+
+        position += pageHeightPx;
+        pageNumber++;
       }
 
       pdf.save(`Talking_Points_${country}.pdf`);
