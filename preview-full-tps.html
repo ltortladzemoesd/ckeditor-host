@@ -83,7 +83,7 @@
   <div class="wrapper" id="pdfContent">
     <h1 id="countryHeading">Talking Points</h1>
     <div id="currentDate"></div>
-    <div id="contentContainer"></div> <!-- no "Loading..." -->
+    <div id="contentContainer"></div>
   </div>
 
   <script>
@@ -129,7 +129,7 @@
     let isContentLoaded = false;
 
     async function loadAllSections() {
-      contentContainer.innerHTML = ""; // clear anything stuck
+      contentContainer.innerHTML = ""; // clear any stuck content
       for (const [sectionKey, sectionTitle] of Object.entries(sections)) {
         const docId = `${country}_${sectionKey}_tp`;
         const sectionDiv = document.createElement("div");
@@ -166,15 +166,12 @@
       const imgData = canvas.toDataURL("image/jpeg", 1.0);
 
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({
-        orientation: 'p',
-        unit: 'mm',
-        format: 'a4'
-      });
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
       const pageWidth = 210;
       const pageHeight = 297;
       const margin = 15;
+      const footerOffsetPx = 50;
 
       const imgWidth = pageWidth - 2 * margin;
       const pageHeightPx = (canvas.width / imgWidth) * (pageHeight - 2 * margin);
@@ -183,22 +180,25 @@
       let pageCount = 0;
 
       while (position < canvas.height) {
+        const sliceHeight = Math.min(pageHeightPx - footerOffsetPx, canvas.height - position);
         const pageCanvas = document.createElement("canvas");
         pageCanvas.width = canvas.width;
-        pageCanvas.height = Math.min(pageHeightPx, canvas.height - position);
+        pageCanvas.height = sliceHeight + footerOffsetPx;
 
         const pageCtx = pageCanvas.getContext("2d");
-        pageCtx.drawImage(canvas, 0, position, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+        pageCtx.fillStyle = "#fff";
+        pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        pageCtx.drawImage(canvas, 0, position, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
 
         const pageImgData = pageCanvas.toDataURL("image/jpeg", 1.0);
         if (pageCount > 0) pdf.addPage();
         pdf.addImage(pageImgData, "JPEG", margin, margin, imgWidth, (pageCanvas.height * imgWidth) / canvas.width, '', 'FAST');
 
-        // Add page number
+        // ✅ Just the number in bottom-right corner
         pdf.setFontSize(10);
-        pdf.text(`Page ${pageCount + 1}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+        pdf.text(`${pageCount + 1}`, pageWidth - margin, pageHeight - 15, { align: 'right' });
 
-        position += pageHeightPx;
+        position += sliceHeight;
         pageCount++;
       }
 
