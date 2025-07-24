@@ -73,7 +73,7 @@
 
     .section-content h2 {
       font-size: 18px;
-      margin: 60px 0 20px 0; /* top: 60px, bottom: 20px */
+      margin: 0;
       padding: 10px 16px;
       background-color: #DEE6E9;
       color: #000;
@@ -203,7 +203,7 @@
 
             const sectionDiv = document.createElement("div");
             sectionDiv.className = "section-content";
-            sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2>`;
+            sectionDiv.innerHTML = `<br><br><h2>${escapeHtml(sectionTitle)}</h2><br>`;
             sectionDiv.insertAdjacentHTML('beforeend', content);
             contentContainer.appendChild(sectionDiv);
           }
