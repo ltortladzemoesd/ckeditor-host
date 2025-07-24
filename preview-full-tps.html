@@ -8,10 +8,6 @@
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
 
-  <!-- Canvas & PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
   <style>
     html, body {
       margin: 0;
@@ -51,6 +47,22 @@
       #saveBtn {
         display: none !important;
       }
+
+      body {
+        background: white;
+      }
+
+      .wrapper {
+        width: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none;
+      }
+
+      .section-content {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
     }
 
     h1 {
@@ -88,7 +100,7 @@
   </style>
 </head>
 <body>
-  <button id="saveBtn" onclick="savePDF()">Save as PDF</button>
+  <button id="saveBtn" onclick="window.print()">Save as PDF</button>
 
   <div class="wrapper" id="pdfContent">
     <h1 id="countryHeading">Talking Points</h1>
@@ -163,56 +175,6 @@
       }
 
       isContentLoaded = true;
-    }
-
-    async function savePDF() {
-      const btn = document.getElementById("saveBtn");
-      btn.style.display = 'none';
-
-      while (!isContentLoaded) await new Promise(r => setTimeout(r, 100));
-
-      const element = document.getElementById("pdfContent");
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-      const imgHeight = canvas.height;
-      const imgWidth = canvas.width;
-      const imgData = canvas.toDataURL("image/jpeg", 1.0);
-
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const margin = 15;
-      const usableWidth = pageWidth - 2 * margin;
-      const usableHeight = pageHeight - 2 * margin;
-
-      const pageHeightPx = (usableHeight * imgWidth) / usableWidth;
-      let position = 0;
-      let pageNumber = 1;
-
-      while (position < imgHeight) {
-        const pageCanvas = document.createElement("canvas");
-        pageCanvas.width = imgWidth;
-        pageCanvas.height = Math.min(pageHeightPx, imgHeight - position);
-        const ctx = pageCanvas.getContext("2d");
-
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-        ctx.drawImage(canvas, 0, position, imgWidth, pageCanvas.height, 0, 0, imgWidth, pageCanvas.height);
-
-        const pageImgData = pageCanvas.toDataURL("image/jpeg", 1.0);
-        if (position > 0) pdf.addPage();
-        pdf.addImage(pageImgData, "JPEG", margin, margin, usableWidth, usableHeight, '', 'FAST');
-
-        pdf.setFontSize(10);
-        pdf.text(`${pageNumber}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
-
-        position += pageHeightPx;
-        pageNumber++;
-      }
-
-      pdf.save(`Talking_Points_${country}.pdf`);
-      btn.style.display = 'block';
     }
 
     loadAllSections();
