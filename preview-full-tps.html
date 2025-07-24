@@ -182,26 +182,28 @@
 
     async function loadAllSections() {
       contentContainer.innerHTML = "";
+
       for (const [sectionKey, sectionTitle] of Object.entries(sections)) {
         const docId = `${country}_${sectionKey}_tp`;
-        const sectionDiv = document.createElement("div");
-        sectionDiv.className = "section-content";
 
         try {
           const doc = await db.collection("ckeditor-content").doc(docId).get();
 
           if (doc.exists) {
-            const content = doc.data().content;
+            const content = doc.data().content || "";
+
+            // Skip empty or whitespace-only content
+            if (content.trim() === "") continue;
+
+            const sectionDiv = document.createElement("div");
+            sectionDiv.className = "section-content";
             sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2>`;
             sectionDiv.insertAdjacentHTML('beforeend', content);
-          } else {
-            sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2><p style="color:gray;"><em>No content found for: ${docId}</em></p>`;
+            contentContainer.appendChild(sectionDiv);
           }
         } catch (error) {
-          sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2><p style="color:red;">Error: ${error.message}</p>`;
+          console.error(`Error loading ${docId}: ${error.message}`);
         }
-
-        contentContainer.appendChild(sectionDiv);
       }
 
       isContentLoaded = true;
