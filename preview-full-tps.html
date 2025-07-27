@@ -23,7 +23,7 @@
     }
 
     .wrapper {
-      width: 794px; /* ~210mm at 96 DPI */
+      width: 794px;
       padding: 40px;
       box-sizing: border-box;
       background: #fff;
@@ -43,7 +43,6 @@
       z-index: 1000;
     }
 
-    /* Mobile-friendly adjustments */
     @media (max-width: 600px) {
       #saveBtn {
         top: 16px;
@@ -93,7 +92,6 @@
       padding: 6px 10px;
     }
 
-    /* CKEditor content cleanup */
     #contentContainer * {
       margin-top: 0 !important;
       margin-bottom: 0 !important;
@@ -172,7 +170,7 @@
     document.getElementById("currentDate").innerText = formattedDate;
 
     const sections = {
-      Introduction: "Introduction"
+      Introduction: "Introduction",
       Diplomatic_Relations: "Diplomatic Relations",
       Bilateral_Trade_and_Economic_Relations: "Bilateral Trade and Economic Relations",
       Trade_Policy: "Trade Policy",
@@ -186,7 +184,6 @@
     };
 
     const contentContainer = document.getElementById("contentContainer");
-    let isContentLoaded = false;
 
     async function loadAllSections() {
       contentContainer.innerHTML = "";
@@ -200,12 +197,11 @@
           if (doc.exists) {
             const content = doc.data().content || "";
 
-            // Skip empty or whitespace-only content
             if (content.trim() === "") continue;
 
             const sectionDiv = document.createElement("div");
             sectionDiv.className = "section-content";
-            sectionDiv.innerHTML = `<br><br><h2>${escapeHtml(sectionTitle)}</h2><br>`;
+            sectionDiv.innerHTML = `<h2>${escapeHtml(sectionTitle)}</h2>`;
             sectionDiv.insertAdjacentHTML('beforeend', content);
             contentContainer.appendChild(sectionDiv);
           }
@@ -213,8 +209,6 @@
           console.error(`Error loading ${docId}: ${error.message}`);
         }
       }
-
-      isContentLoaded = true;
     }
 
     loadAllSections();
