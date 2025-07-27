@@ -47,6 +47,9 @@
       if (!country) return;
 
       const frames = [
+        ["introductionIframe", "Introduction"],
+        ["introductionTpIframe", "Introduction"],
+        
         ["diplomaticIframe", "Diplomatic_Relations"],
         ["diplomaticTpIframe", "Diplomatic_Relations"],
 
@@ -72,7 +75,10 @@
         ["commsTpIframe", "Communications_Innovation_and_Post"],
 
         ["itIframe", "Information_Technology"],
-        ["itTpIframe", "Information_Technology"]
+        ["itTpIframe", "Information_Technology"],
+
+        ["remarksIframe", "Remarks"],
+        ["remarksTpIframe", "Remarks"],
       ];
 
       frames.forEach(([id, section], index) => {
