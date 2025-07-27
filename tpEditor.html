@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>TPs Editor</title>
+  <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial;
+      background: #f5f5f5;
+    }
+
+    #editor {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h2>Talking Points Editor</h2>
+  <textarea id="editor" rows="30" cols="100"></textarea>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAH6IH8c9imo9xlIoxpjVzVcgVIMqqgR2g",
+      authDomain: "ckeditor-content-saver.firebaseapp.com",
+      projectId: "ckeditor-content-saver",
+      storageBucket: "ckeditor-content-saver.appspot.com",
+      messagingSenderId: "429325764295",
+      appId: "1:429325764295:web:ef0006899c4461e1afa0e2"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const country = urlParams.get("country");
+
+    const sections = {
+      Introduction: "Introduction",
+      Diplomatic_Relations: "Diplomatic Relations",
+      Bilateral_Trade_and_Economic_Relations: "Bilateral Trade and Economic Relations",
+      Trade_Policy: "Trade Policy",
+      Tourism: "Tourism",
+      Investment: "Investment",
+      Transport: "Transport",
+      Energy: "Energy",
+      Communications_Innovation_and_Post: "Communications, Innovation and Post",
+      Information_Technology: "Information Technology",
+      Remarks: "Remarks"
+    };
+
+    async function loadContent() {
+      let fullHTML = "";
+
+      for (const [key, title] of Object.entries(sections)) {
+        const docId = `${country}_${key}_tp`;
+        try {
+          const doc = await db.collection("ckeditor-content").doc(docId).get();
+          const content = (doc.exists && doc.data().content) ? doc.data().content.trim() : "";
+
+          if (content) {
+            fullHTML += `
+              <h2 style="background:#DEE6E9; padding:10px; border-radius:20px; text-align:center;">${title}</h2>
+              ${content}
+              <br><br>
+            `;
+          }
+        } catch (err) {
+          console.error(`Error loading ${docId}:`, err);
+        }
+      }
+
+      CKEDITOR.replace("editor", { height: 800 });
+      CKEDITOR.instances.editor.setData(fullHTML);
+    }
+
+    if (country) loadContent();
+  </script>
+</body>
+</html>
