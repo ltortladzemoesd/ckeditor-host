@@ -41,7 +41,6 @@
     <option value="Georgia">Georgia</option>
     <option value="Germany">Germany</option>
     <option value="France">France</option>
-    <!-- Add more countries as needed -->
   </select>
 
   <!-- Action buttons -->
@@ -49,33 +48,32 @@
   <button id="tpEditorBtn">TPs Editor</button>
 
   <script>
-    const countryDropdown = document.getElementById("countryChoice");
-    const tpEditorBtn = document.getElementById("tpEditorBtn");
-    const infoEditorBtn = document.getElementById("infoEditorBtn");
+    document.addEventListener("DOMContentLoaded", function () {
+      const countryChoice = document.getElementById("countryChoice");
+      const tpEditorBtn = document.getElementById("tpEditorBtn");
+      const infoEditorBtn = document.getElementById("infoEditorBtn");
 
-    tpEditorBtn.addEventListener("click", () => {
-      const country = countryDropdown.value;
-      if (!country) {
-        alert("Please select a country");
-        return;
-      }
+      tpEditorBtn.addEventListener("click", () => {
+        const country = countryChoice.value;
+        if (!country) {
+          alert("Please select a country");
+          return;
+        }
+        const url = `tpEditor.html?country=${encodeURIComponent(country)}`;
+        window.open(url, "_blank");
+      });
 
-      const url = `tpEditor.html?country=${encodeURIComponent(country)}`;
-      window.open(url, "_blank");
-    });
-
-    infoEditorBtn.addEventListener("click", () => {
-      const country = countryDropdown.value;
-      if (!country) {
-        alert("Please select a country");
-        return;
-      }
-
-      const url = `infoEditor.html?country=${encodeURIComponent(country)}`;
-      window.open(url, "_blank");
+      infoEditorBtn.addEventListener("click", () => {
+        const country = countryChoice.value;
+        if (!country) {
+          alert("Please select a country");
+          return;
+        }
+        const url = `infoEditor.html?country=${encodeURIComponent(country)}`;
+        window.open(url, "_blank");
+      });
     });
   </script>
 
 </body>
 </html>
-
